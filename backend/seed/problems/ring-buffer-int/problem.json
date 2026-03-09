@@ -1,0 +1,115 @@
+{
+  "slug": "ring-buffer-int",
+  "title": "Fixed-Size Ring Buffer (int)",
+  "difficulty": "medium",
+  "category": "Embedded C",
+  "problemType": "data-structure",
+  "shortDescription": "Implement a fixed-capacity FIFO ring buffer used in firmware pipelines.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 25,
+    "focusAreas": ["queues", "circular-indexing", "state-machines"],
+    "source": "seed"
+  },
+  "tags": ["ring-buffer", "embedded", "fifo", "index-arithmetic"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Track head/tail/count carefully; avoid off-by-one bugs."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "init and empty pop",
+      "displayInput": "init then pop",
+      "displayExpect": "pop=false, size=0",
+      "explanation": "Fresh buffers start empty.",
+      "codeFile": "cases/visible/init_empty.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "basic fifo push pop",
+      "displayInput": "push 10,20 then pop twice",
+      "displayExpect": "10 then 20",
+      "explanation": "Order must stay FIFO.",
+      "codeFile": "cases/visible/push_pop_fifo.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "fill then overflow",
+      "displayInput": "push BF_RING_CAPACITY + 1 values",
+      "displayExpect": "last push fails",
+      "explanation": "Buffer cannot exceed fixed capacity.",
+      "codeFile": "cases/visible/fill_then_overflow.c",
+      "weight": 1,
+      "sortOrder": 30
+    },
+    {
+      "name": "wrap-around order",
+      "displayInput": "push/pop/push across index wrap",
+      "displayExpect": "logical FIFO order preserved",
+      "explanation": "Head/tail wrapping is core behavior.",
+      "codeFile": "cases/visible/wraparound.c",
+      "weight": 1,
+      "sortOrder": 40
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "alternating ops",
+      "displayInput": "20 push-pop pairs",
+      "displayExpect": "every pop matches latest push",
+      "explanation": "Catches stale index/count updates.",
+      "codeFile": "cases/hidden/alternating_ops.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "fifo after wrap",
+      "displayInput": "partial drain then refill",
+      "displayExpect": "remaining+new values pop in order",
+      "explanation": "Wrap logic must preserve sequence.",
+      "codeFile": "cases/hidden/preserve_fifo_after_wrap.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "empty pop after drain",
+      "displayInput": "drain then pop once more",
+      "displayExpect": "false",
+      "explanation": "No underflow allowed.",
+      "codeFile": "cases/hidden/pop_empty_after_drain.c",
+      "weight": 1,
+      "sortOrder": 130
+    },
+    {
+      "name": "reuse after empty",
+      "displayInput": "full cycle then push/pop again",
+      "displayExpect": "buffer remains usable",
+      "explanation": "State should reset cleanly over time.",
+      "codeFile": "cases/hidden/reuse_after_empty.c",
+      "weight": 1,
+      "sortOrder": 140
+    },
+    {
+      "name": "size tracking",
+      "displayInput": "size checks after each operation",
+      "displayExpect": "exact counts",
+      "explanation": "Verifies `bf_ring_size` is consistent.",
+      "codeFile": "cases/hidden/size_tracking.c",
+      "weight": 1,
+      "sortOrder": 150
+    }
+  ]
+}

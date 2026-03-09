@@ -1,0 +1,5 @@
+- `dest` and `src` are valid for reading/writing `n` bytes.
+- Tests include `n = 0` and binary payloads containing `0x00` bytes.
+- `dest` and `src` do not overlap.
+- Time complexity target: `O(n)`.
+- Extra memory target: `O(1)`.

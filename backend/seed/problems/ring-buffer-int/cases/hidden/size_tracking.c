@@ -1,0 +1,14 @@
+bf_ring_t rb;
+bf_ring_init(&rb);
+bool ok = true;
+ok = ok && bf_ring_size(&rb) == 0;
+(void)bf_ring_push(&rb, 1);
+ok = ok && bf_ring_size(&rb) == 1;
+(void)bf_ring_push(&rb, 2);
+ok = ok && bf_ring_size(&rb) == 2;
+int out = 0;
+(void)bf_ring_pop(&rb, &out);
+ok = ok && bf_ring_size(&rb) == 1;
+(void)bf_ring_pop(&rb, &out);
+ok = ok && bf_ring_size(&rb) == 0;
+case_passed = ok;

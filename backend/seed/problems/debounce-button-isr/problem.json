@@ -1,0 +1,126 @@
+{
+  "slug": "debounce-button-isr",
+  "title": "Debounce Button in Timer ISR",
+  "difficulty": "medium",
+  "category": "Embedded C",
+  "problemType": "embedded-simulation",
+  "shortDescription": "Implement an 8-sample shift-register debouncer with rising/falling edge events.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 25,
+    "focusAreas": ["interrupts", "state-machines", "bit-operations"],
+    "source": "seed"
+  },
+  "tags": ["debounce", "interrupts", "embedded", "register-simulation"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Update history on every ISR call, then detect stable transitions."
+    }
+  ],
+  "assets": [
+    {
+      "assetType": "reference",
+      "name": "Simulated Register Model",
+      "mimeType": "text/plain",
+      "contentFile": "assets/register_model.md",
+      "hidden": false,
+      "metadata": {
+        "topic": "firmware-interface"
+      }
+    }
+  ],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "stable low has no edges",
+      "displayInput": "initial low, then 16 low samples",
+      "displayExpect": "state low, no rising/falling events",
+      "explanation": "Noisy logic should not trigger when steady low.",
+      "codeFile": "cases/visible/stable_low_no_edges.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "bouncy press emits one rise",
+      "displayInput": "low-to-high with bounce",
+      "displayExpect": "one rising edge",
+      "explanation": "Requires 8 stable high samples before accepting press.",
+      "codeFile": "cases/visible/bouncy_press_single_rise.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "bouncy release emits one fall",
+      "displayInput": "high-to-low with bounce",
+      "displayExpect": "one falling edge",
+      "explanation": "Requires 8 stable low samples before accepting release.",
+      "codeFile": "cases/visible/bouncy_release_single_fall.c",
+      "weight": 1,
+      "sortOrder": 30
+    },
+    {
+      "name": "held high does not repeat rise",
+      "displayInput": "continuous high after transition",
+      "displayExpect": "single rising edge only",
+      "explanation": "Edge events should fire on state transition, not continuously.",
+      "codeFile": "cases/visible/hold_high_no_repeat_edges.c",
+      "weight": 1,
+      "sortOrder": 40
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "multiple press-release cycles",
+      "displayInput": "two full high/low cycles",
+      "displayExpect": "2 rises and 2 falls",
+      "explanation": "Debouncer should remain correct over repeated transitions.",
+      "codeFile": "cases/hidden/multiple_cycles.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "edge flag latch",
+      "displayInput": "single transition without immediate read",
+      "displayExpect": "first take returns 1, second returns 0",
+      "explanation": "Events must persist until consumed.",
+      "codeFile": "cases/hidden/latch_until_read.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "initial high then fall",
+      "displayInput": "start high, then 8 low samples",
+      "displayExpect": "one falling event",
+      "explanation": "Initialization path should support either initial level.",
+      "codeFile": "cases/hidden/initial_high_then_fall.c",
+      "weight": 1,
+      "sortOrder": 130
+    },
+    {
+      "name": "alternating noise",
+      "displayInput": "1,0 repeated without 8 stable samples",
+      "displayExpect": "no edges",
+      "explanation": "Pure bounce/noise must not trigger transitions.",
+      "codeFile": "cases/hidden/noise_without_stability.c",
+      "weight": 1,
+      "sortOrder": 140
+    },
+    {
+      "name": "bounce both directions",
+      "displayInput": "press bounce then release bounce",
+      "displayExpect": "exactly one rise and one fall",
+      "explanation": "Full-cycle robustness with noisy edges.",
+      "codeFile": "cases/hidden/bounce_both_edges_once.c",
+      "weight": 1,
+      "sortOrder": 150
+    }
+  ]
+}

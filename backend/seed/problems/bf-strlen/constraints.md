@@ -1,0 +1,5 @@
+- `s` points to a readable, null-terminated byte string.
+- String length in tests is in the range `0..4096` bytes.
+- Time complexity target: `O(n)`.
+- Extra memory target: `O(1)`.
+- Do not modify input memory.

@@ -1,0 +1,5 @@
+- `dest` and `src` are valid for `n` bytes.
+- Regions may overlap in either direction.
+- Tests include `n = 0`, `dest == src`, and offset copies.
+- Time complexity target: `O(n)`.
+- Extra memory target: `O(1)`.

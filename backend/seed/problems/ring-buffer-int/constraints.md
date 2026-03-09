@@ -1,0 +1,5 @@
+- Use only the provided fixed-capacity storage (`data[BF_RING_CAPACITY]`).
+- Do not allocate dynamic memory.
+- All operations should run in `O(1)` time.
+- `bf_ring_size` must always return a value in `0..BF_RING_CAPACITY`.
+- Tests assume single-threaded correctness (no locking required).

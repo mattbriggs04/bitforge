@@ -1,0 +1,126 @@
+{
+  "slug": "parse-ipv4-header",
+  "title": "Parse IPv4 Header",
+  "difficulty": "medium",
+  "category": "Networking",
+  "problemType": "packet-parser",
+  "shortDescription": "Parse raw IPv4 header bytes into structured fields with strict validation.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 30,
+    "focusAreas": ["packet-parsing", "bit-fields", "endianness"],
+    "source": "seed"
+  },
+  "tags": ["ipv4", "networking", "bit-manipulation", "parsing"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Keep field extraction explicit; avoid undefined behavior from misaligned casts."
+    }
+  ],
+  "assets": [
+    {
+      "assetType": "diagram",
+      "name": "IPv4 Header Layout",
+      "mimeType": "text/plain",
+      "contentFile": "assets/ipv4_header_layout.txt",
+      "hidden": false,
+      "metadata": {
+        "topic": "packet-format"
+      }
+    }
+  ],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "parse basic tcp header",
+      "displayInput": "20-byte IPv4 header: version=4, ihl=5, protocol=6",
+      "displayExpect": "return 0 and parse all core fields correctly",
+      "explanation": "Baseline success case.",
+      "codeFile": "cases/visible/valid_basic.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "reject non-ipv4",
+      "displayInput": "version nibble != 4",
+      "displayExpect": "-3",
+      "explanation": "Version validation is required.",
+      "codeFile": "cases/visible/invalid_version.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "reject invalid ihl",
+      "displayInput": "ihl < 5",
+      "displayExpect": "-4",
+      "explanation": "IHL must be at least 5 (20 bytes).",
+      "codeFile": "cases/visible/invalid_ihl.c",
+      "weight": 1,
+      "sortOrder": 30
+    },
+    {
+      "name": "reject truncated base header",
+      "displayInput": "packet length < 20",
+      "displayExpect": "-2",
+      "explanation": "Minimum IPv4 header is 20 bytes.",
+      "codeFile": "cases/visible/truncated_minimum_header.c",
+      "weight": 1,
+      "sortOrder": 40
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "null argument handling",
+      "displayInput": "packet==NULL or out==NULL",
+      "displayExpect": "-1",
+      "explanation": "Defensive API contract.",
+      "codeFile": "cases/hidden/null_args.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "ihl with options valid",
+      "displayInput": "ihl=6 and len=24",
+      "displayExpect": "0",
+      "explanation": "Header-length validation with options present.",
+      "codeFile": "cases/hidden/ihl_with_options_valid.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "ihl exceeds buffer",
+      "displayInput": "ihl=6 and len=22",
+      "displayExpect": "-5",
+      "explanation": "Packet must contain full declared header length.",
+      "codeFile": "cases/hidden/ihl_requires_more_bytes.c",
+      "weight": 1,
+      "sortOrder": 130
+    },
+    {
+      "name": "extract flags and fragment offset",
+      "displayInput": "flags+offset packed in bytes 6-7",
+      "displayExpect": "correct split values",
+      "explanation": "Bit masking and shifting correctness.",
+      "codeFile": "cases/hidden/fragment_offset_and_flags.c",
+      "weight": 1,
+      "sortOrder": 140
+    },
+    {
+      "name": "extract dscp and ecn",
+      "displayInput": "second byte has DSCP/ECN bits set",
+      "displayExpect": "dscp=0x2A and ecn=3",
+      "explanation": "Verifies traffic class field extraction.",
+      "codeFile": "cases/hidden/dscp_ecn_extract.c",
+      "weight": 1,
+      "sortOrder": 150
+    }
+  ]
+}

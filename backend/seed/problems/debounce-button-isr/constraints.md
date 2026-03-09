@@ -1,0 +1,5 @@
+- Use only the provided `debounce_button_t` state.
+- Treat any non-zero `pin_level` as logic high.
+- Edge events must be latched until read by `debounce_take_*`.
+- A stable transition requires 8 consecutive equal samples.
+- Time complexity per ISR call: `O(1)`.

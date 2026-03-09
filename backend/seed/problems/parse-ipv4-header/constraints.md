@@ -1,0 +1,5 @@
+- Parse only the IPv4 base header fields required by `ipv4_header_t`.
+- Options payload does not need to be copied, but `ihl`/length validation must be correct.
+- Use explicit bit operations for field extraction.
+- Time complexity target: `O(1)`.
+- Do not use dynamic allocation.

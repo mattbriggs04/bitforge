@@ -1,0 +1,115 @@
+{
+  "slug": "bf-memcpy",
+  "title": "Reimplement memcpy",
+  "difficulty": "easy",
+  "category": "Embedded C",
+  "problemType": "c-library",
+  "shortDescription": "Implement a byte-for-byte non-overlapping memory copy routine.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 15,
+    "focusAreas": ["pointers", "memory-layout", "byte-operations"],
+    "source": "seed"
+  },
+  "tags": ["libc", "memory", "byte-copy", "pointers"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Use byte-wise pointer arithmetic; do not call libc memcpy."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "zero length copy",
+      "displayInput": "dest=[11 22 33], src=[AA BB CC], n=0",
+      "displayExpect": "dest unchanged, return dest",
+      "explanation": "Copying zero bytes should be a no-op.",
+      "codeFile": "cases/visible/zero_length.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "basic 4 byte copy",
+      "displayInput": "dest=[00 00 00 00], src=[DE AD BE EF], n=4",
+      "displayExpect": "dest becomes [DE AD BE EF]",
+      "explanation": "Simple contiguous memory copy.",
+      "codeFile": "cases/visible/basic_copy.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "binary data with zeros",
+      "displayInput": "src includes 0x00 bytes",
+      "displayExpect": "all bytes copied exactly",
+      "explanation": "Memory copy is not string-aware.",
+      "codeFile": "cases/visible/copy_with_zero_bytes.c",
+      "weight": 1,
+      "sortOrder": 30
+    },
+    {
+      "name": "partial copy preserves tail",
+      "displayInput": "n=3 over 6-byte destination",
+      "displayExpect": "first 3 overwritten, remaining bytes unchanged",
+      "explanation": "Only `n` bytes may be touched.",
+      "codeFile": "cases/visible/partial_copy.c",
+      "weight": 1,
+      "sortOrder": 40
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "single byte",
+      "displayInput": "n=1",
+      "displayExpect": "correct byte copied and return pointer preserved",
+      "explanation": "Boundary case for small copy.",
+      "codeFile": "cases/hidden/single_byte.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "copy into middle of destination",
+      "displayInput": "dest+2 as target",
+      "displayExpect": "only selected range overwritten",
+      "explanation": "Validates return value and offset writes.",
+      "codeFile": "cases/hidden/middle_of_buffer.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "struct as raw bytes",
+      "displayInput": "copy struct blob of sizeof(struct)",
+      "displayExpect": "destination struct bytes match source",
+      "explanation": "Real firmware often copies packed protocol/config blobs.",
+      "codeFile": "cases/hidden/struct_blob.c",
+      "weight": 1,
+      "sortOrder": 130
+    },
+    {
+      "name": "large buffer",
+      "displayInput": "n=512",
+      "displayExpect": "all bytes copied",
+      "explanation": "Catches short-loop and off-by-one mistakes.",
+      "codeFile": "cases/hidden/large_copy.c",
+      "weight": 1,
+      "sortOrder": 140
+    },
+    {
+      "name": "odd-sized pattern",
+      "displayInput": "n=33",
+      "displayExpect": "all bytes copied exactly",
+      "explanation": "Non-power-of-two size coverage.",
+      "codeFile": "cases/hidden/repeated_pattern.c",
+      "weight": 1,
+      "sortOrder": 150
+    }
+  ]
+}

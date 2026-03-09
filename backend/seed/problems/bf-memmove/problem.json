@@ -1,0 +1,115 @@
+{
+  "slug": "bf-memmove",
+  "title": "Reimplement memmove",
+  "difficulty": "medium",
+  "category": "Embedded C",
+  "problemType": "c-library",
+  "shortDescription": "Implement overlap-safe memory copy semantics.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 20,
+    "focusAreas": ["pointers", "overlap-safety", "memory-layout"],
+    "source": "seed"
+  },
+  "tags": ["libc", "memory", "overlap", "pointers"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Handle overlap by choosing copy direction based on pointer ranges."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "non-overlapping copy",
+      "displayInput": "src=[1 2 3 4], dest=[0 0 0 0], n=4",
+      "displayExpect": "dest matches src",
+      "explanation": "Baseline behavior should match memcpy when no overlap.",
+      "codeFile": "cases/visible/no_overlap.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "forward overlap",
+      "displayInput": "dest=buf+2, src=buf, n=5",
+      "displayExpect": "bytes shifted right without corruption",
+      "explanation": "When destination starts inside source, copy backward.",
+      "codeFile": "cases/visible/overlap_forward.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "backward overlap",
+      "displayInput": "dest=buf, src=buf+3, n=4",
+      "displayExpect": "bytes shifted left without corruption",
+      "explanation": "When destination is before source, forward copy is safe.",
+      "codeFile": "cases/visible/overlap_backward.c",
+      "weight": 1,
+      "sortOrder": 30
+    },
+    {
+      "name": "zero length",
+      "displayInput": "n=0",
+      "displayExpect": "buffer unchanged and return pointer preserved",
+      "explanation": "Boundary case; no bytes should be touched.",
+      "codeFile": "cases/visible/zero_length.c",
+      "weight": 1,
+      "sortOrder": 40
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "self copy",
+      "displayInput": "dest==src",
+      "displayExpect": "no corruption",
+      "explanation": "Self copy must be safe.",
+      "codeFile": "cases/hidden/self_copy.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "large forward overlap",
+      "displayInput": "dest=buf+7, src=buf, n=90",
+      "displayExpect": "exact memmove semantics",
+      "explanation": "Catches loops that copy in wrong direction.",
+      "codeFile": "cases/hidden/full_overlap_forward_large.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "large backward overlap",
+      "displayInput": "dest=buf, src=buf+11, n=100",
+      "displayExpect": "exact memmove semantics",
+      "explanation": "Verifies opposite overlap direction.",
+      "codeFile": "cases/hidden/full_overlap_backward_large.c",
+      "weight": 1,
+      "sortOrder": 130
+    },
+    {
+      "name": "odd-sized overlap",
+      "displayInput": "dest=buf+1, src=buf, n=5",
+      "displayExpect": "correct shifted bytes",
+      "explanation": "Off-by-one overlap check.",
+      "codeFile": "cases/hidden/odd_size_overlap.c",
+      "weight": 1,
+      "sortOrder": 140
+    },
+    {
+      "name": "middle shift left",
+      "displayInput": "dest=buf+2, src=buf+4, n=3",
+      "displayExpect": "middle range copied exactly",
+      "explanation": "Ensures pointer arithmetic is correct for sub-slices.",
+      "codeFile": "cases/hidden/middle_shift_left.c",
+      "weight": 1,
+      "sortOrder": 150
+    }
+  ]
+}

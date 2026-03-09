@@ -1,0 +1,115 @@
+{
+  "slug": "bf-strlen",
+  "title": "Reimplement strlen",
+  "difficulty": "easy",
+  "category": "Embedded C",
+  "problemType": "c-library",
+  "shortDescription": "Implement a null-terminated string length routine without using libc.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 12,
+    "focusAreas": ["pointers", "memory", "c-standard-library"],
+    "source": "seed"
+  },
+  "tags": ["strings", "libc", "pointers", "null-termination"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Do not use strlen from <string.h>."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "empty string",
+      "displayInput": "s = \"\"",
+      "displayExpect": "0",
+      "explanation": "Empty strings have length zero.",
+      "codeFile": "cases/visible/empty.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "basic word",
+      "displayInput": "s = \"kernel\"",
+      "displayExpect": "6",
+      "explanation": "Counts bytes until the first null terminator.",
+      "codeFile": "cases/visible/basic_word.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "string with spaces",
+      "displayInput": "s = \"fw prep lab\"",
+      "displayExpect": "11",
+      "explanation": "Whitespace is still a normal byte.",
+      "codeFile": "cases/visible/with_spaces.c",
+      "weight": 1,
+      "sortOrder": 30
+    },
+    {
+      "name": "embedded null byte",
+      "displayInput": "{'a','b','\\0','z','z','\\0'}",
+      "displayExpect": "2",
+      "explanation": "Traversal must stop at the first null byte.",
+      "codeFile": "cases/visible/embedded_null.c",
+      "weight": 1,
+      "sortOrder": 40
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "single char",
+      "displayInput": "s = \"Q\"",
+      "displayExpect": "1",
+      "explanation": "Small non-empty string.",
+      "codeFile": "cases/hidden/single_char.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "leading null",
+      "displayInput": "{'\\0','x','y','z'}",
+      "displayExpect": "0",
+      "explanation": "First byte can be null.",
+      "codeFile": "cases/hidden/leading_null.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "non ascii bytes",
+      "displayInput": "{0xC3,0xA9,0x00,0x41}",
+      "displayExpect": "2",
+      "explanation": "Length is in bytes, not characters.",
+      "codeFile": "cases/hidden/utf8_bytes.c",
+      "weight": 1,
+      "sortOrder": 130
+    },
+    {
+      "name": "long buffer",
+      "displayInput": "1023 bytes then null",
+      "displayExpect": "1023",
+      "explanation": "Validates linear scan behavior.",
+      "codeFile": "cases/hidden/long_buffer.c",
+      "weight": 1,
+      "sortOrder": 140
+    },
+    {
+      "name": "null at offset 255",
+      "displayInput": "large array with null at index 255",
+      "displayExpect": "255",
+      "explanation": "Must stop exactly at the first terminator.",
+      "codeFile": "cases/hidden/null_at_255.c",
+      "weight": 1,
+      "sortOrder": 150
+    }
+  ]
+}

@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/matthew/bitforge/backend/internal/config"
-	"github.com/matthew/bitforge/backend/internal/db"
+	"github.com/mattbriggs04/bitforge/backend/internal/config"
+	"github.com/mattbriggs04/bitforge/backend/internal/db"
 )
 
 func main() {

@@ -6,10 +6,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/matthew/bitforge/backend/internal/judge"
-	"github.com/matthew/bitforge/backend/internal/model"
-	"github.com/matthew/bitforge/backend/internal/queue"
-	"github.com/matthew/bitforge/backend/internal/repository"
+	"github.com/mattbriggs04/bitforge/backend/internal/judge"
+	"github.com/mattbriggs04/bitforge/backend/internal/model"
+	"github.com/mattbriggs04/bitforge/backend/internal/queue"
+	"github.com/mattbriggs04/bitforge/backend/internal/repository"
 )
 
 type WorkerService struct {

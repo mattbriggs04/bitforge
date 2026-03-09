@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/matthew/bitforge/backend/internal/model"
-	"github.com/matthew/bitforge/backend/internal/service"
+	"github.com/mattbriggs04/bitforge/backend/internal/model"
+	"github.com/mattbriggs04/bitforge/backend/internal/service"
 )
 
 type Server struct {

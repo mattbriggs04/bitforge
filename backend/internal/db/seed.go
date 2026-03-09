@@ -330,19 +330,15 @@ size_t bf_strlen(const char *s) {
 			Category:    "Embedded C",
 			ProblemType: "libc-reimplementation",
 			Short:       "Copy N bytes from source to destination and return destination pointer.",
-			Statement: `Implement 'void *bf_memcpy(void *dest, const void *src, size_t n)'.
-
-For this problem, source and destination are guaranteed not to overlap.
-
-Rules:
-- Copy exactly 'n' bytes.
-- Return the original 'dest' pointer.
-- Do not call 'memcpy', 'memmove', or similar helpers.
-`,
-			Constraints: `- 'dest' and 'src' are valid for 'n' bytes.
-- No overlap in this problem variant.
-- Time complexity target: 'O(n)'.
-`,
+			Statement: "Implement `void *bf_memcpy(void *dest, const void *src, size_t n)`.\n\n" +
+				"For this problem, source and destination are guaranteed not to overlap.\n\n" +
+				"Rules:\n" +
+				"- Copy exactly `n` bytes.\n" +
+				"- Return the original `dest` pointer.\n" +
+				"- Do not call `memcpy`, `memmove`, or similar helpers.\n",
+			Constraints: "- `dest` and `src` are valid for `n` bytes.\n" +
+				"- No overlap in this problem variant.\n" +
+				"- Time complexity target: `O(n)`.\n",
 			Metadata: map[string]any{
 				"estimated_minutes": 25,
 				"interview_focus":   []string{"pointer casting", "byte-level copy"},
@@ -415,19 +411,15 @@ void *bf_memcpy(void *dest, const void *src, size_t n) {
 			Category:    "Embedded C",
 			ProblemType: "libc-reimplementation",
 			Short:       "Copy bytes safely even when source and destination regions overlap.",
-			Statement: `Implement 'void *bf_memmove(void *dest, const void *src, size_t n)'.
-
-Unlike 'memcpy', memory ranges may overlap. Your logic must choose direction of copy to avoid clobbering unread bytes.
-
-Rules:
-- Copy exactly 'n' bytes.
-- Return original 'dest'.
-- Do not call 'memmove' or equivalent helpers.
-`,
-			Constraints: `- Buffers are valid for 'n' bytes.
-- Overlap can be forward or backward.
-- Time complexity target: 'O(n)'.
-`,
+			Statement: "Implement `void *bf_memmove(void *dest, const void *src, size_t n)`.\n\n" +
+				"Unlike `memcpy`, memory ranges may overlap. Your logic must choose direction of copy to avoid clobbering unread bytes.\n\n" +
+				"Rules:\n" +
+				"- Copy exactly `n` bytes.\n" +
+				"- Return original `dest`.\n" +
+				"- Do not call `memmove` or equivalent helpers.\n",
+			Constraints: "- Buffers are valid for `n` bytes.\n" +
+				"- Overlap can be forward or backward.\n" +
+				"- Time complexity target: `O(n)`.\n",
 			Metadata: map[string]any{
 				"estimated_minutes": 35,
 				"interview_focus":   []string{"overlap handling", "directional copy", "memory safety"},

@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/matthew/bitforge/backend/internal/model"
+	"github.com/mattbriggs04/bitforge/backend/internal/model"
 )
 
 type CAssertRunner struct{}

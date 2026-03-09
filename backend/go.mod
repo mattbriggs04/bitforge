@@ -1,4 +1,4 @@
-module github.com/matthew/bitforge/backend
+module github.com/mattbriggs04/bitforge/backend
 
 go 1.24
 

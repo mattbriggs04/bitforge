@@ -41,10 +41,18 @@ export default async function ProblemsPage({ searchParams }: PageProps) {
   const category = readParam(params, "category");
   const tag = readParam(params, "tag");
 
-  const [problems, allProblems] = await Promise.all([
-    getProblemsServer({ q, difficulty, category, tag }),
-    getProblemsServer({}),
-  ]);
+  let problems: ProblemSummary[] = [];
+  let allProblems: ProblemSummary[] = [];
+  let backendUnavailable = false;
+
+  try {
+    [problems, allProblems] = await Promise.all([
+      getProblemsServer({ q, difficulty, category, tag }),
+      getProblemsServer({}),
+    ]);
+  } catch {
+    backendUnavailable = true;
+  }
   const categories = unique(allProblems.map((item) => item.category));
   const tags = unique(allProblems.flatMap((item) => item.tags));
 
@@ -74,6 +82,12 @@ export default async function ProblemsPage({ searchParams }: PageProps) {
           categories={categories}
           tags={tags}
         />
+
+        {backendUnavailable ? (
+          <p className="catalog-warning">
+            Backend is still warming up. Retry in a second if problems have not loaded yet.
+          </p>
+        ) : null}
 
         <section className="problem-grid">
           {problems.length === 0 ? (

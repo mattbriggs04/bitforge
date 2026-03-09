@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/matthew/bitforge/backend/internal/model"
-	"github.com/matthew/bitforge/backend/internal/queue"
-	"github.com/matthew/bitforge/backend/internal/repository"
+	"github.com/mattbriggs04/bitforge/backend/internal/model"
+	"github.com/mattbriggs04/bitforge/backend/internal/queue"
+	"github.com/mattbriggs04/bitforge/backend/internal/repository"
 )
 
 type SubmissionService struct {

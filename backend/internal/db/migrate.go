@@ -7,7 +7,7 @@ import (
 	"io/fs"
 	"sort"
 
-	"github.com/matthew/bitforge/backend/internal/migrations"
+	"github.com/mattbriggs04/bitforge/backend/internal/migrations"
 )
 
 func RunMigrations(ctx context.Context, conn *sql.DB) error {

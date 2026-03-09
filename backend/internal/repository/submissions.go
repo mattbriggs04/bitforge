@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/matthew/bitforge/backend/internal/model"
+	"github.com/mattbriggs04/bitforge/backend/internal/model"
 )
 
 type SubmissionsRepository struct {
@@ -69,7 +69,7 @@ func (r *SubmissionsRepository) Complete(ctx context.Context, submissionID strin
 
 	const insertResult = `
 		INSERT INTO submission_test_results (submission_id, test_case_id, case_name, is_hidden, status, message, execution_ms, sort_order)
-		VALUES ($1, NULLIF($2, ''), $3, $4, $5, $6, $7, $8)
+		VALUES ($1, NULLIF($2, '')::uuid, $3, $4, $5, $6, $7, $8)
 	`
 	for _, item := range result.Results {
 		if _, err := tx.ExecContext(

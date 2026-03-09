@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/matthew/bitforge/backend/internal/model"
+	"github.com/mattbriggs04/bitforge/backend/internal/model"
 )
 
 type Request struct {

@@ -7,12 +7,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/matthew/bitforge/backend/internal/config"
-	"github.com/matthew/bitforge/backend/internal/db"
-	"github.com/matthew/bitforge/backend/internal/judge"
-	"github.com/matthew/bitforge/backend/internal/queue"
-	"github.com/matthew/bitforge/backend/internal/repository"
-	"github.com/matthew/bitforge/backend/internal/service"
+	"github.com/mattbriggs04/bitforge/backend/internal/config"
+	"github.com/mattbriggs04/bitforge/backend/internal/db"
+	"github.com/mattbriggs04/bitforge/backend/internal/judge"
+	"github.com/mattbriggs04/bitforge/backend/internal/queue"
+	"github.com/mattbriggs04/bitforge/backend/internal/repository"
+	"github.com/mattbriggs04/bitforge/backend/internal/service"
 )
 
 func main() {

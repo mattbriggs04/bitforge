@@ -3,8 +3,36 @@ import { ProblemDetail, ProblemSummary } from "@/lib/types";
 const BACKEND_API_URL =
   process.env.BACKEND_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(url: string, init?: RequestInit): Promise<Response> {
+  const attempts = 4;
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetch(url, init);
+      if (response.status >= 500 && attempt < attempts) {
+        await sleep(120 * attempt);
+        continue;
+      }
+      return response;
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts) {
+        await sleep(120 * attempt);
+        continue;
+      }
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("fetch failed");
+}
+
 async function backendFetch<T>(path: string): Promise<T> {
-  const response = await fetch(`${BACKEND_API_URL}${path}`, {
+  const response = await fetchWithRetry(`${BACKEND_API_URL}${path}`, {
     cache: "no-store",
   });
 
@@ -33,7 +61,7 @@ export async function getProblemsServer(params: {
 }
 
 export async function getProblemServer(slug: string): Promise<ProblemDetail | null> {
-  const response = await fetch(`${BACKEND_API_URL}/api/v1/problems/${slug}`, {
+  const response = await fetchWithRetry(`${BACKEND_API_URL}/api/v1/problems/${slug}`, {
     cache: "no-store",
   });
 

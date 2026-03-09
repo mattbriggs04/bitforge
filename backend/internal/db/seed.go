@@ -722,5 +722,158 @@ Bytes 16-19: Destination IPv4 address`,
 				},
 			},
 		},
+		{
+			Slug:        "debounce-button-isr",
+			Title:       "Debounce Button with Timer ISR Simulation",
+			Difficulty:  "hard",
+			Category:    "Embedded C",
+			ProblemType: "hardware-simulation",
+			Short:       "Implement a shift-register debouncer polled from a simulated timer ISR using a GPIO input register.",
+			Statement: `Implement a timer-driven software debouncer for a simulated button input.
+
+You are given a GPIO input register snapshot on every timer tick. Your code should:
+- track a selected pin
+- shift in one sampled bit per tick
+- detect stable transitions only when the 8-bit history is all ones or all zeros
+- latch edge events and expose consume APIs
+
+Implement:
+- 'void debounce_init(debounce_t *db, uint8_t pin)'
+- 'void debounce_timer_isr(debounce_t *db, uint32_t gpio_in_reg)'
+- 'int debounce_consume_rising_edge(debounce_t *db)'
+- 'int debounce_consume_falling_edge(debounce_t *db)'
+
+Simulation model:
+- Timer ISR calls 'debounce_timer_isr' each tick.
+- Sampled bit is '(gpio_in_reg >> db->pin) & 1'.
+- Update history with a single-byte shift register:
+  'history = (history << 1) | sample'
+- If history becomes 0xFF and previous stable state was low, latch one rising edge.
+- If history becomes 0x00 and previous stable state was high, latch one falling edge.
+- Consume functions return 1 once per latched edge, then clear the latch.
+`,
+			Constraints: `- Use only byte-sized history for debouncing.
+- Do not use dynamic allocation.
+- Pin index in tests is between 0 and 15.
+- Debounce threshold is exactly 8 consistent samples.
+- This problem simulates ISR polling; do not block or busy-wait.
+`,
+			Metadata: map[string]any{
+				"estimated_minutes": 55,
+				"interview_focus":   []string{"interrupt-driven design", "register access", "edge detection", "state machines"},
+				"simulated_hardware": map[string]any{
+					"gpio_register":  "gpio_in_reg",
+					"sampling_model": "timer_isr_poll",
+					"debounce_bits":  8,
+				},
+			},
+			Tags: []string{"embedded", "firmware", "interrupts", "debounce", "registers"},
+			Templates: []seedTemplate{
+				{
+					Language: "c",
+					StarterCode: `#include <stdint.h>
+
+typedef struct {
+    uint8_t pin;
+    uint8_t history;
+    uint8_t stable_state;
+    uint8_t rose_event;
+    uint8_t fell_event;
+} debounce_t;
+
+void debounce_init(debounce_t *db, uint8_t pin) {
+    (void)db;
+    (void)pin;
+}
+
+void debounce_timer_isr(debounce_t *db, uint32_t gpio_in_reg) {
+    (void)db;
+    (void)gpio_in_reg;
+}
+
+int debounce_consume_rising_edge(debounce_t *db) {
+    (void)db;
+    return 0;
+}
+
+int debounce_consume_falling_edge(debounce_t *db) {
+    (void)db;
+    return 0;
+}
+`,
+					Notes: "Treat the timer callback as ISR-safe logic: update state, latch events, return quickly.",
+				},
+			},
+			Assets: []seedAsset{
+				{
+					AssetType: "reference",
+					Name:      "debounce-register-model",
+					MIMEType:  "text/plain",
+					Content: `Each timer tick provides one 32-bit GPIO input snapshot.
+To sample button pin N:
+  sample = (gpio_in_reg >> N) & 1
+
+8-bit debounce history:
+  history = (history << 1) | sample
+
+history == 0xFF => stable high
+history == 0x00 => stable low`,
+					Metadata: map[string]any{"kind": "simulation-notes"},
+				},
+			},
+			JudgeRunner: "c_assert_harness_v1",
+			JudgeConfig: commonJudgeConfig,
+			VisibleCases: []seedCase{
+				{
+					Name:          "sample_latches_rising_after_stable_high",
+					DisplayInput:  "Bouncy low-to-high sequence on pin 5",
+					DisplayExpect: "Exactly one rising edge event",
+					Explanation:   "Rising edge should trigger only after 8 consecutive high samples.",
+					Payload: map[string]any{
+						"code": "debounce_t db;\nconst uint32_t B = (1u << 5);\ndebounce_init(&db, 5);\nuint32_t seq[] = {0,0,0,0,B,0,B,0,B,B,B,B,B,B,B,B};\nfor (size_t i = 0; i < sizeof(seq)/sizeof(seq[0]); i++) {\n    debounce_timer_isr(&db, seq[i]);\n}\nint first = debounce_consume_rising_edge(&db);\nint second = debounce_consume_rising_edge(&db);\ncase_passed = (first == 1 && second == 0 && debounce_consume_falling_edge(&db) == 0);",
+					},
+					SortOrder: 1,
+				},
+				{
+					Name:          "sample_latches_falling_after_stable_low",
+					DisplayInput:  "High-to-low bounce sequence on pin 2",
+					DisplayExpect: "Exactly one falling edge event",
+					Explanation:   "Falling edge must wait for 8 consecutive low samples.",
+					Payload: map[string]any{
+						"code": "debounce_t db;\nconst uint32_t B = (1u << 2);\ndebounce_init(&db, 2);\nuint32_t seq[] = {B,B,B,B,B,B,B,B,B,0,B,0,0,0,0,0,0,0,0,0};\nfor (size_t i = 0; i < sizeof(seq)/sizeof(seq[0]); i++) {\n    debounce_timer_isr(&db, seq[i]);\n}\nint first = debounce_consume_falling_edge(&db);\nint second = debounce_consume_falling_edge(&db);\ncase_passed = (first == 1 && second == 0 && debounce_consume_rising_edge(&db) == 0);",
+					},
+					SortOrder: 2,
+				},
+			},
+			HiddenCases: []seedCase{
+				{
+					Name:      "hidden_ignores_short_chatter",
+					Hidden:    true,
+					SortOrder: 100,
+					Weight:    2,
+					Payload: map[string]any{
+						"code": "debounce_t db;\nconst uint32_t B = (1u << 7);\ndebounce_init(&db, 7);\nuint32_t seq[] = {0,B,0,B,0,B,0,B,0,B,0,0,0};\nfor (size_t i = 0; i < sizeof(seq)/sizeof(seq[0]); i++) {\n    debounce_timer_isr(&db, seq[i]);\n}\ncase_passed = (debounce_consume_rising_edge(&db) == 0 && debounce_consume_falling_edge(&db) == 0);",
+					},
+				},
+				{
+					Name:      "hidden_samples_correct_pin_only",
+					Hidden:    true,
+					SortOrder: 110,
+					Weight:    2,
+					Payload: map[string]any{
+						"code": "debounce_t db;\nconst uint32_t P = (1u << 11);\ndebounce_init(&db, 11);\nuint32_t seq[] = {\n  P, P|1u, P|2u, P|4u, P|8u, P|16u, P|32u, P|64u,\n  0u, 1u, 2u, 4u, 8u, 16u, 32u, 64u\n};\nfor (size_t i = 0; i < sizeof(seq)/sizeof(seq[0]); i++) {\n    debounce_timer_isr(&db, seq[i]);\n}\nint rise = debounce_consume_rising_edge(&db);\nint fall = debounce_consume_falling_edge(&db);\ncase_passed = (rise == 1 && fall == 1);",
+					},
+				},
+				{
+					Name:      "hidden_rising_not_retriggered_without_new_transition",
+					Hidden:    true,
+					SortOrder: 120,
+					Weight:    1,
+					Payload: map[string]any{
+						"code": "debounce_t db;\nconst uint32_t B = (1u << 1);\ndebounce_init(&db, 1);\nuint32_t seq[] = {0,0,0,0,0,0,0,0,B,B,B,B,B,B,B,B,B,B,B,B};\nfor (size_t i = 0; i < sizeof(seq)/sizeof(seq[0]); i++) {\n    debounce_timer_isr(&db, seq[i]);\n}\nint first = debounce_consume_rising_edge(&db);\nint second = debounce_consume_rising_edge(&db);\ncase_passed = (first == 1 && second == 0 && debounce_consume_falling_edge(&db) == 0);",
+					},
+				},
+			},
+		},
 	}
 }

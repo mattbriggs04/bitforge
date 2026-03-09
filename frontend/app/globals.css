@@ -463,6 +463,122 @@ select {
   font-size: 0.88rem;
 }
 
+.judge-terminal {
+  margin-top: 0.78rem;
+  border: 1px solid rgba(114, 142, 160, 0.36);
+  border-radius: 0.86rem;
+  background: #081017;
+  overflow: hidden;
+}
+
+.judge-terminal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  border-bottom: 1px solid rgba(114, 142, 160, 0.26);
+  background: #0f1a24;
+  padding: 0.58rem 0.75rem;
+}
+
+.judge-terminal-head h3 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.judge-terminal-head code {
+  color: #80d9b0;
+  font-size: 0.76rem;
+  font-family: var(--font-mono), monospace;
+}
+
+.judge-terminal-body {
+  padding: 0.78rem;
+}
+
+.terminal-overview {
+  margin-bottom: 0.65rem;
+}
+
+.terminal-line {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82rem;
+  color: #d4e2eb;
+}
+
+.terminal-line-dim {
+  color: #9bb0c0;
+}
+
+.terminal-line-error {
+  color: #f0897c;
+}
+
+.terminal-case-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.terminal-case-list li {
+  display: grid;
+  grid-template-columns: 90px minmax(160px, 280px) 1fr;
+  gap: 0.55rem;
+  align-items: start;
+  border: 1px solid rgba(114, 142, 160, 0.23);
+  border-radius: 0.52rem;
+  background: rgba(14, 24, 33, 0.88);
+  padding: 0.44rem 0.5rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.78rem;
+}
+
+.terminal-case-status {
+  font-weight: 700;
+}
+
+.terminal-case-name {
+  color: #d7e4ec;
+}
+
+.terminal-case-message {
+  color: #9ab0bf;
+}
+
+.case-status-passed .terminal-case-status {
+  color: #63d09a;
+}
+
+.case-status-failed .terminal-case-status {
+  color: #f09a84;
+}
+
+.case-status-error .terminal-case-status {
+  color: #f0b86c;
+}
+
+.case-status-pending .terminal-case-status {
+  color: #93abbb;
+}
+
+.terminal-details {
+  margin-top: 0.58rem;
+}
+
+.terminal-details summary {
+  cursor: pointer;
+  color: #c8d8e2;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8rem;
+}
+
+.terminal-details pre {
+  margin-top: 0.48rem;
+}
+
 .result-panel {
   margin-top: 0.9rem;
 }
@@ -637,6 +753,10 @@ select {
 
   .problem-pane-right {
     padding-right: 0;
+  }
+
+  .terminal-case-list li {
+    grid-template-columns: 1fr;
   }
 }
 

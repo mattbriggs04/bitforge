@@ -26,6 +26,7 @@ This MVP is intentionally C-first with architecture ready to add C++, Rust, and 
   - `bf-memmove`
   - `ring-buffer-int`
   - `parse-ipv4-header`
+  - `debounce-button-isr`
 
 ## Stack
 

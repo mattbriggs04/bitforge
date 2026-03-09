@@ -137,6 +137,9 @@ func (s *SubmissionService) GetByID(ctx context.Context, submissionID string) (*
 			}
 		}
 	}
+	if submission.Results == nil {
+		submission.Results = []model.SubmissionTestResult{}
+	}
 
 	return submission, nil
 }

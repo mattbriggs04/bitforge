@@ -87,7 +87,7 @@ type Submission struct {
 	QueuedAt      time.Time              `json:"queuedAt"`
 	StartedAt     *time.Time             `json:"startedAt,omitempty"`
 	CompletedAt   *time.Time             `json:"completedAt,omitempty"`
-	Results       []SubmissionTestResult `json:"results,omitempty"`
+	Results       []SubmissionTestResult `json:"results"`
 }
 
 type SubmissionTestResult struct {

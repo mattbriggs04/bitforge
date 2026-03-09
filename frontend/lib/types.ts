@@ -74,7 +74,7 @@ export type Submission = {
   queuedAt: string;
   startedAt?: string;
   completedAt?: string;
-  results: SubmissionCaseResult[];
+  results?: SubmissionCaseResult[];
 };
 
 export type APIError = {

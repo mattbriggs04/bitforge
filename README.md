@@ -46,6 +46,8 @@ This MVP is intentionally C-first with architecture ready to add C++, Rust, and 
 │   │   ├── worker
 │   │   ├── migrate
 │   │   └── seed
+│   ├── seed
+│   │   └── problems
 │   └── internal
 │       ├── config
 │       ├── db
@@ -63,6 +65,8 @@ This MVP is intentionally C-first with architecture ready to add C++, Rust, and 
 │   │   └── page.tsx
 │   ├── components
 │   └── lib
+├── scripts
+│   └── new-problem.sh
 └── docker-compose.yml
 ```
 
@@ -84,32 +88,36 @@ The schema is designed for richer systems content, not only plain stdin/stdout a
 
 ## Adding New Problems
 
-Use `backend/internal/db/seed.go` as the source of truth for MVP content.
+Problems are defined by file bundles in `backend/seed/problems/<slug>/`.
 
-1. Add a new `seedProblem` entry in `defaultSeedProblems()`.
-2. Set metadata:
-   - `slug`, `title`, `difficulty`, `category`, `problem_type`
-   - `statement`, `constraints`, `tags`, `metadata`
-3. Add at least one language template (currently `c`):
-   - `starter_code`
-   - `notes`
-4. Add visible cases in `VisibleCases`:
-   - `display_input`, `display_expected`, `explanation`
-   - `payload.code` (C snippet that sets `case_passed`)
-5. Add hidden evaluator cases in `HiddenCases`:
-   - same payload style, but `Hidden: true`
-6. Optionally add `Assets` for diagrams/register maps/protocol notes.
-7. Run:
+1. Scaffold a new bundle:
+   - `./scripts/new-problem.sh <slug> "<Title>" "<Category>"`
+2. Edit the generated files:
+   - `statement.md`
+   - `constraints.md`
+   - `templates/c/starter.c`
+   - `cases/visible/*.c`
+   - `cases/hidden/*.c`
+   - `problem.json` metadata/tags/order
+3. Reseed:
    - `make seed`
-   - restart API/worker if already running
+4. Restart API/worker if they are already running and not in compose.
 
-### Case Payload Contract
+See `backend/seed/problems/README.md` for full schema and conventions.
 
-Current runner `c_assert_harness_v1` expects each test case payload to include:
+### Case Snippet Contract
 
-- `payload.code` (required): C snippet that sets `case_passed` to truthy/falsy.
+Runner `c_assert_harness_v1` expects each case snippet to set `case_passed`.
 
-The judge wraps user code + each test snippet into a generated harness and reports per-case results to `submission_test_results`.
+Example:
+
+```c
+int got = solve();
+int expected = 42;
+case_passed = (got == expected);
+```
+
+The judge wraps user code plus these snippets into a generated harness and stores per-case outcomes in `submission_test_results`.
 
 ### Runner Extensibility
 

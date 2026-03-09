@@ -82,6 +82,44 @@ Core tables:
 
 The schema is designed for richer systems content, not only plain stdin/stdout algorithm prompts. Problem assets, per-language templates, and JSON payload test cases support future labs (headers, blobs, multi-file assets, etc.).
 
+## Adding New Problems
+
+Use `backend/internal/db/seed.go` as the source of truth for MVP content.
+
+1. Add a new `seedProblem` entry in `defaultSeedProblems()`.
+2. Set metadata:
+   - `slug`, `title`, `difficulty`, `category`, `problem_type`
+   - `statement`, `constraints`, `tags`, `metadata`
+3. Add at least one language template (currently `c`):
+   - `starter_code`
+   - `notes`
+4. Add visible cases in `VisibleCases`:
+   - `display_input`, `display_expected`, `explanation`
+   - `payload.code` (C snippet that sets `case_passed`)
+5. Add hidden evaluator cases in `HiddenCases`:
+   - same payload style, but `Hidden: true`
+6. Optionally add `Assets` for diagrams/register maps/protocol notes.
+7. Run:
+   - `make seed`
+   - restart API/worker if already running
+
+### Case Payload Contract
+
+Current runner `c_assert_harness_v1` expects each test case payload to include:
+
+- `payload.code` (required): C snippet that sets `case_passed` to truthy/falsy.
+
+The judge wraps user code + each test snippet into a generated harness and reports per-case results to `submission_test_results`.
+
+### Runner Extensibility
+
+- Problem behavior is selected by `problem_judge_configs.runner`.
+- MVP uses one runner (`c_assert_harness_v1`), but runner dispatch can be extended for:
+  - register-level hardware simulation
+  - packet blob fixtures
+  - multi-file builds
+  - isolated sandbox executors
+
 ## Submission Pipeline
 
 1. Frontend sends code to `POST /api/v1/submissions`
@@ -167,3 +205,13 @@ Key values:
 ## MVP Judge Security Note
 
 The current judge executes compiled C directly inside the worker container for practical MVP speed. It is structured so you can replace the execution layer with a hardened sandbox (namespaces/seccomp/firecracker/isolated runners) without changing API contracts.
+
+## Future Ideas
+- Compete with friends
+    - Start a room that others can join
+    - Variety of modes: code golf, time based, number of problems completed * difficulty for scoring
+    - Ability to select time, difficulty, number of rounds
+- Highly optimized libc implementations
+    - Achieving speeds close to actual memcpy using SIMD, word-level, etc. (hard problems)
+- Debugging problems
+- RTOS problems (FreeRTOS, Zephyr, NuttX)

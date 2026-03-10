@@ -8,6 +8,8 @@ const (
 	ErrorKindInvalid     ErrorKind = "invalid"
 	ErrorKindNotFound    ErrorKind = "not_found"
 	ErrorKindUnsupported ErrorKind = "unsupported"
+	ErrorKindForbidden   ErrorKind = "forbidden"
+	ErrorKindConflict    ErrorKind = "conflict"
 )
 
 type AppError struct {
@@ -29,6 +31,14 @@ func newNotFoundError(message string) error {
 
 func newUnsupportedError(message string) error {
 	return &AppError{Kind: ErrorKindUnsupported, Message: message}
+}
+
+func newForbiddenError(message string) error {
+	return &AppError{Kind: ErrorKindForbidden, Message: message}
+}
+
+func newConflictError(message string) error {
+	return &AppError{Kind: ErrorKindConflict, Message: message}
 }
 
 func AsAppError(err error) (*AppError, bool) {

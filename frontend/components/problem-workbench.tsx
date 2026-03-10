@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { ProblemDetail, Submission, SubmissionCaseResult } from "@/lib/types";
+import { loadOrCreateUserKey, loadStoredUsername } from "@/lib/username";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -71,10 +72,20 @@ export function ProblemWorkbench({ problem }: Props) {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [userHandle, setUserHandle] = useState("demo");
+  const [userKey, setUserKey] = useState("");
 
   useEffect(() => {
     setCode(defaultTemplate?.starterCode ?? "");
   }, [defaultTemplate?.starterCode]);
+
+  useEffect(() => {
+    setUserKey(loadOrCreateUserKey());
+    const stored = loadStoredUsername();
+    if (stored) {
+      setUserHandle(stored);
+    }
+  }, []);
 
   useEffect(() => {
     if (!submissionID) {
@@ -117,6 +128,10 @@ export function ProblemWorkbench({ problem }: Props) {
       setError("Source code is empty");
       return;
     }
+    const activeUserKey = userKey || loadOrCreateUserKey();
+    if (!userKey && activeUserKey) {
+      setUserKey(activeUserKey);
+    }
 
     setIsSubmitting(true);
     setError("");
@@ -127,7 +142,8 @@ export function ProblemWorkbench({ problem }: Props) {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-user-handle": "demo",
+          "x-user-handle": userHandle || "demo",
+          "x-user-key": activeUserKey,
         },
         body: JSON.stringify({
           problemSlug: problem.slug,

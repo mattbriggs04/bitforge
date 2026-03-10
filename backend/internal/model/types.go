@@ -68,6 +68,40 @@ type ProblemFilter struct {
 	Tag        string
 }
 
+type CompetitionRoomMember struct {
+	UserID   string    `json:"userId"`
+	Handle   string    `json:"handle"`
+	IsHost   bool      `json:"isHost"`
+	JoinedAt time.Time `json:"joinedAt"`
+}
+
+type CompetitionRoom struct {
+	ID               string                  `json:"id"`
+	Code             string                  `json:"code"`
+	HostUserID       string                  `json:"hostUserId"`
+	HostHandle       string                  `json:"hostHandle"`
+	Name             string                  `json:"name"`
+	Mode             string                  `json:"mode"`
+	QuestionCount    int                     `json:"questionCount"`
+	DifficultyPolicy string                  `json:"difficultyPolicy"`
+	Status           string                  `json:"status"`
+	Metadata         map[string]any          `json:"metadata"`
+	CreatedAt        time.Time               `json:"createdAt"`
+	UpdatedAt        time.Time               `json:"updatedAt"`
+	Members          []CompetitionRoomMember `json:"members"`
+}
+
+type NewCompetitionRoom struct {
+	Code             string
+	HostUserID       string
+	Name             string
+	Mode             string
+	QuestionCount    int
+	DifficultyPolicy string
+	Status           string
+	Metadata         map[string]any
+}
+
 type Submission struct {
 	ID            string                 `json:"id"`
 	ProblemID     string                 `json:"problemId"`

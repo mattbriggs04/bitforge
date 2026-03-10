@@ -11,16 +11,23 @@ import (
 )
 
 type Server struct {
-	problemService    *service.ProblemService
-	submissionService *service.SubmissionService
-	defaultUserHandle string
+	problemService     *service.ProblemService
+	submissionService  *service.SubmissionService
+	competitionService *service.CompetitionService
+	defaultUserHandle  string
 }
 
-func NewServer(problemService *service.ProblemService, submissionService *service.SubmissionService, defaultUserHandle string) *Server {
+func NewServer(
+	problemService *service.ProblemService,
+	submissionService *service.SubmissionService,
+	competitionService *service.CompetitionService,
+	defaultUserHandle string,
+) *Server {
 	return &Server{
-		problemService:    problemService,
-		submissionService: submissionService,
-		defaultUserHandle: defaultUserHandle,
+		problemService:     problemService,
+		submissionService:  submissionService,
+		competitionService: competitionService,
+		defaultUserHandle:  defaultUserHandle,
 	}
 }
 
@@ -32,6 +39,12 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/v1/problems/{slug}", s.handleGetProblem)
 	mux.HandleFunc("POST /api/v1/submissions", s.handleCreateSubmission)
 	mux.HandleFunc("GET /api/v1/submissions/{id}", s.handleGetSubmission)
+	mux.HandleFunc("GET /api/v1/competitions/rooms", s.handleListCompetitionRooms)
+	mux.HandleFunc("POST /api/v1/competitions/rooms", s.handleCreateCompetitionRoom)
+	mux.HandleFunc("POST /api/v1/competitions/rooms/join", s.handleJoinCompetitionRoom)
+	mux.HandleFunc("GET /api/v1/competitions/rooms/{code}", s.handleGetCompetitionRoom)
+	mux.HandleFunc("DELETE /api/v1/competitions/rooms/{code}", s.handleDeleteCompetitionRoom)
+	mux.HandleFunc("POST /api/v1/competitions/rooms/{code}/delete", s.handleDeleteCompetitionRoom)
 
 	return s.withMiddleware(mux)
 }
@@ -96,10 +109,7 @@ func (s *Server) handleCreateSubmission(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userHandle := strings.TrimSpace(r.Header.Get("X-User-Handle"))
-	if userHandle == "" {
-		userHandle = s.defaultUserHandle
-	}
+	userHandle, userKey := s.identityFromRequest(r)
 
 	result, err := s.submissionService.Create(r.Context(), service.CreateSubmissionInput{
 		ProblemSlug: req.ProblemSlug,
@@ -107,14 +117,10 @@ func (s *Server) handleCreateSubmission(w http.ResponseWriter, r *http.Request) 
 		Mode:        req.Mode,
 		SourceCode:  req.SourceCode,
 		UserHandle:  userHandle,
+		UserKey:     userKey,
 	})
 	if err != nil {
-		if appErr, ok := service.AsAppError(err); ok {
-			status := http.StatusBadRequest
-			if appErr.Kind == service.ErrorKindNotFound {
-				status = http.StatusNotFound
-			}
-			writeError(w, status, appErr.Message)
+		if s.writeServiceError(w, err) {
 			return
 		}
 		log.Printf("create submission error: %v", err)
@@ -146,11 +152,171 @@ func (s *Server) handleGetSubmission(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, submission)
 }
 
+type createCompetitionRoomRequest struct {
+	Name             string         `json:"name"`
+	Mode             string         `json:"mode"`
+	QuestionCount    int            `json:"questionCount"`
+	DifficultyPolicy string         `json:"difficultyPolicy"`
+	Metadata         map[string]any `json:"metadata"`
+}
+
+type joinCompetitionRoomRequest struct {
+	Code string `json:"code"`
+}
+
+func (s *Server) handleListCompetitionRooms(w http.ResponseWriter, r *http.Request) {
+	userHandle, userKey := s.identityFromRequest(r)
+
+	rooms, err := s.competitionService.ListRoomsForUser(r.Context(), userKey, userHandle)
+	if err != nil {
+		if s.writeServiceError(w, err) {
+			return
+		}
+		log.Printf("list competition rooms error: %v", err)
+		writeError(w, http.StatusInternalServerError, "failed to list competition rooms")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{"items": rooms})
+}
+
+func (s *Server) handleCreateCompetitionRoom(w http.ResponseWriter, r *http.Request) {
+	var req createCompetitionRoomRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid JSON payload")
+		return
+	}
+
+	userHandle, userKey := s.identityFromRequest(r)
+
+	room, err := s.competitionService.CreateRoom(r.Context(), service.CreateCompetitionRoomInput{
+		UserHandle:       userHandle,
+		UserKey:          userKey,
+		Name:             req.Name,
+		Mode:             req.Mode,
+		QuestionCount:    req.QuestionCount,
+		DifficultyPolicy: req.DifficultyPolicy,
+		Metadata:         req.Metadata,
+	})
+	if err != nil {
+		if s.writeServiceError(w, err) {
+			return
+		}
+		log.Printf("create competition room error: %v", err)
+		writeError(w, http.StatusInternalServerError, "failed to create competition room")
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, room)
+}
+
+func (s *Server) handleJoinCompetitionRoom(w http.ResponseWriter, r *http.Request) {
+	var req joinCompetitionRoomRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid JSON payload")
+		return
+	}
+
+	userHandle, userKey := s.identityFromRequest(r)
+
+	room, err := s.competitionService.JoinRoom(r.Context(), service.JoinCompetitionRoomInput{
+		UserHandle: userHandle,
+		UserKey:    userKey,
+		Code:       req.Code,
+	})
+	if err != nil {
+		if s.writeServiceError(w, err) {
+			return
+		}
+		log.Printf("join competition room error: %v", err)
+		writeError(w, http.StatusInternalServerError, "failed to join competition room")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, room)
+}
+
+func (s *Server) handleGetCompetitionRoom(w http.ResponseWriter, r *http.Request) {
+	code := strings.TrimSpace(r.PathValue("code"))
+	if code == "" {
+		writeError(w, http.StatusBadRequest, "room code is required")
+		return
+	}
+
+	room, err := s.competitionService.GetRoomByCode(r.Context(), code)
+	if err != nil {
+		if s.writeServiceError(w, err) {
+			return
+		}
+		log.Printf("get competition room error: %v", err)
+		writeError(w, http.StatusInternalServerError, "failed to load competition room")
+		return
+	}
+	if room == nil {
+		writeError(w, http.StatusNotFound, "room not found")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, room)
+}
+
+func (s *Server) handleDeleteCompetitionRoom(w http.ResponseWriter, r *http.Request) {
+	code := strings.TrimSpace(r.PathValue("code"))
+	if code == "" {
+		writeError(w, http.StatusBadRequest, "room code is required")
+		return
+	}
+
+	userHandle, userKey := s.identityFromRequest(r)
+
+	if err := s.competitionService.DeleteRoom(r.Context(), service.DeleteCompetitionRoomInput{
+		UserHandle: userHandle,
+		UserKey:    userKey,
+		Code:       code,
+	}); err != nil {
+		if s.writeServiceError(w, err) {
+			return
+		}
+		log.Printf("delete competition room error: %v", err)
+		writeError(w, http.StatusInternalServerError, "failed to delete competition room")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{"status": "deleted"})
+}
+
+func (s *Server) writeServiceError(w http.ResponseWriter, err error) bool {
+	appErr, ok := service.AsAppError(err)
+	if !ok {
+		return false
+	}
+
+	status := http.StatusBadRequest
+	if appErr.Kind == service.ErrorKindNotFound {
+		status = http.StatusNotFound
+	} else if appErr.Kind == service.ErrorKindForbidden {
+		status = http.StatusForbidden
+	} else if appErr.Kind == service.ErrorKindConflict {
+		status = http.StatusConflict
+	}
+	writeError(w, status, appErr.Message)
+	return true
+}
+
+func (s *Server) identityFromRequest(r *http.Request) (string, string) {
+	userHandle := strings.TrimSpace(r.Header.Get("X-User-Handle"))
+	if userHandle == "" {
+		userHandle = s.defaultUserHandle
+	}
+	userKey := strings.TrimSpace(r.Header.Get("X-User-Key"))
+	return userHandle, userKey
+}
+
 func (s *Server) withMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-User-Handle")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-User-Handle, X-User-Key")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return

@@ -42,6 +42,7 @@ func main() {
 
 	problemsRepo := repository.NewProblemsRepository(postgres)
 	submissionsRepo := repository.NewSubmissionsRepository(postgres)
+	competitionsRepo := repository.NewCompetitionsRepository(postgres)
 	usersRepo := repository.NewUsersRepository(postgres)
 	submissionQueue := queue.NewRedisSubmissionQueue(redisClient, cfg.SubmissionQueue)
 
@@ -53,8 +54,9 @@ func main() {
 		submissionQueue,
 		cfg.DefaultUserHandle,
 	)
+	competitionService := service.NewCompetitionService(competitionsRepo, usersRepo, cfg.DefaultUserHandle)
 
-	srv := httpapi.NewServer(problemService, submissionService, cfg.DefaultUserHandle)
+	srv := httpapi.NewServer(problemService, submissionService, competitionService, cfg.DefaultUserHandle)
 
 	httpServer := &http.Server{
 		Addr:              ":" + cfg.HTTPPort,

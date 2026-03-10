@@ -15,6 +15,7 @@ export function SiteHeader() {
         </Link>
         <nav className="main-nav">
           <Link href="/problems">Problem Catalog</Link>
+          <Link href="/competitions">Competitions</Link>
           <a href="#tracks">Tracks</a>
         </nav>
       </div>

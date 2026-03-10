@@ -80,3 +80,26 @@ export type Submission = {
 export type APIError = {
   error: string;
 };
+
+export type CompetitionRoomMember = {
+  userId: string;
+  handle: string;
+  isHost: boolean;
+  joinedAt: string;
+};
+
+export type CompetitionRoom = {
+  id: string;
+  code: string;
+  hostUserId: string;
+  hostHandle: string;
+  name: string;
+  mode: "time_based" | "questions_complete" | "code_golf" | string;
+  questionCount: number;
+  difficultyPolicy: "easy" | "medium" | "hard" | "random" | "progressive" | string;
+  status: "open" | "active" | "completed" | "closed" | string;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+  members: CompetitionRoomMember[];
+};

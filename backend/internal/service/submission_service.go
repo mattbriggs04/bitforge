@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -24,6 +25,7 @@ type CreateSubmissionInput struct {
 	Mode        string
 	SourceCode  string
 	UserHandle  string
+	UserKey     string
 }
 
 type CreateSubmissionOutput struct {
@@ -94,8 +96,11 @@ func (s *SubmissionService) Create(ctx context.Context, input CreateSubmissionIn
 	if userHandle == "" {
 		userHandle = s.defaultUserHandle
 	}
-	userID, err := s.users.EnsureByHandle(ctx, userHandle)
+	userID, err := s.users.EnsureIdentity(ctx, input.UserKey, userHandle)
 	if err != nil {
+		if errors.Is(err, repository.ErrHandleTaken) {
+			return nil, newConflictError("username is already taken")
+		}
 		return nil, fmt.Errorf("ensure user: %w", err)
 	}
 

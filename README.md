@@ -19,6 +19,10 @@ This MVP is intentionally C-first with architecture ready to add C++, Rust, and 
   - `Run Samples` mode (visible tests)
   - `Submit` mode (visible + hidden tests)
 - Async judge pipeline using Redis queue + Go worker
+- Friend competitions:
+  - create room with shareable code
+  - host-selected mode/question count/difficulty policy
+  - join room by code and view participants
 - Postgres-backed data model with migrations and seed data
 - Seeded systems problems:
   - `bf-strlen`
@@ -83,6 +87,8 @@ Core tables:
 - `problem_test_cases`
 - `submissions`
 - `submission_test_results`
+- `competition_rooms`
+- `competition_room_members`
 
 The schema is designed for richer systems content, not only plain stdin/stdout algorithm prompts. Problem assets, per-language templates, and JSON payload test cases support future labs (headers, blobs, multi-file assets, etc.).
 
@@ -194,6 +200,22 @@ make frontend-lint  # eslint
   - Body: `{ problemSlug, language, mode, sourceCode }`
   - `mode`: `run` or `submit`
 - `GET /api/v1/submissions/{id}`
+- `GET /api/v1/competitions/rooms`
+  - Uses `X-User-Handle` + `X-User-Key` headers to list rooms for a stable user identity
+- `POST /api/v1/competitions/rooms`
+  - Body: `{ name, mode, questionCount, difficultyPolicy, metadata? }`
+- `POST /api/v1/competitions/rooms/join`
+  - Body: `{ code }`
+- `GET /api/v1/competitions/rooms/{code}`
+- `DELETE /api/v1/competitions/rooms/{code}`
+  - Host-only room deletion
+- `POST /api/v1/competitions/rooms/{code}/delete`
+  - Host-only room deletion (fallback alias)
+
+### Identity Note
+
+Competition membership is tied to a stable client identity key (`X-User-Key`) with mutable username (`X-User-Handle`).
+This lets users rename their username without losing room membership.
 
 ## Environment Variables
 

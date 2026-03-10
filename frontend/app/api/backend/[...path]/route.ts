@@ -48,8 +48,10 @@ async function proxy(request: NextRequest, context: RouteContext): Promise<Respo
   const headers = new Headers();
   const contentType = request.headers.get("content-type");
   const userHandle = request.headers.get("x-user-handle");
+  const userKey = request.headers.get("x-user-key");
   if (contentType) headers.set("content-type", contentType);
   if (userHandle) headers.set("x-user-handle", userHandle);
+  if (userKey) headers.set("x-user-key", userKey);
 
   const method = request.method.toUpperCase();
   const body = method === "GET" || method === "HEAD" ? undefined : await request.text();

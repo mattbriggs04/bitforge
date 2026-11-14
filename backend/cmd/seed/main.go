@@ -15,16 +15,16 @@ func main() {
 	}
 
 	ctx := context.Background()
-	postgres, err := db.OpenPostgres(ctx, cfg.DatabaseURL)
+	conn, err := db.OpenDatabase(ctx, cfg.DatabaseURL)
 	if err != nil {
-		log.Fatalf("connect postgres: %v", err)
+		log.Fatalf("open database: %v", err)
 	}
-	defer postgres.Close()
+	defer conn.Close()
 
-	if err := db.RunMigrations(ctx, postgres); err != nil {
+	if err := db.RunMigrations(ctx, conn); err != nil {
 		log.Fatalf("run migrations: %v", err)
 	}
-	if err := db.SeedMVP(ctx, postgres); err != nil {
+	if err := db.SeedMVP(ctx, conn); err != nil {
 		log.Fatalf("seed data: %v", err)
 	}
 

@@ -24,7 +24,7 @@ backend/seed/problems/<slug>/
 ## How Seeding Works
 
 - `backend/internal/db/seed.go` loads every `problem.json` from this directory.
-- File references in `problem.json` are read and stored in Postgres.
+- File references in `problem.json` are read and stored in SQLite.
 - Case snippets are stored as `payload.code` and compiled into the harness at judge time.
 - Hidden cases stay backend-side and are not returned by problem detail APIs.
 
@@ -38,6 +38,10 @@ Required top-level fields:
 - `templates[]` (at least one language)
 - `judge.runner` and `judge.config`
 - `visibleCases[]`, `hiddenCases[]`
+
+Optional problem fields:
+
+- `solutionFile` points to a Markdown file that is exposed as `metadata.solutionMarkdown` for the reveal panel.
 
 Each case object must include:
 

@@ -1,0 +1,88 @@
+{
+  "slug": "freertos-event-bits",
+  "title": "FreeRTOS-Style Event Bits",
+  "difficulty": "medium",
+  "category": "RTOS",
+  "problemType": "rtos-simulation",
+  "shortDescription": "Implement event-bit set, clear, and wait semantics for task synchronization.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 30,
+    "focusAreas": ["rtos", "synchronization", "bitwise"],
+    "source": "seed"
+  },
+  "tags": ["freertos", "rtos", "event-bits", "bitwise"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "This models EventGroup wait semantics without real blocking."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "set and clear",
+      "displayInput": "set 0x03 then clear 0x01",
+      "displayExpect": "bits=0x02",
+      "explanation": "Basic event-bit manipulation.",
+      "codeFile": "cases/visible/set_and_clear.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "wait any",
+      "displayInput": "bits=0x04 wait mask=0x06 wait_all=false",
+      "displayExpect": "ready",
+      "explanation": "Any matching bit satisfies the wait.",
+      "codeFile": "cases/visible/wait_any.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "wait all",
+      "displayInput": "bits=0x06 wait mask=0x06 wait_all=true",
+      "displayExpect": "ready",
+      "explanation": "All requested bits must be present.",
+      "codeFile": "cases/visible/wait_all.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "clear on exit",
+      "displayInput": "successful wait with clear_on_exit",
+      "displayExpect": "wait bits cleared",
+      "explanation": "FreeRTOS event groups often clear matched bits after wake.",
+      "codeFile": "cases/hidden/clear_on_exit.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "wait all fails",
+      "displayInput": "only one requested bit present",
+      "displayExpect": "not ready and bits unchanged",
+      "explanation": "Failed waits should not clear bits.",
+      "codeFile": "cases/hidden/wait_all_fails.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "reserved bits masked",
+      "displayInput": "set high reserved bits",
+      "displayExpect": "only low 24 bits stored",
+      "explanation": "FreeRTOS event groups reserve top control bits.",
+      "codeFile": "cases/hidden/reserved_bits_masked.c",
+      "weight": 1,
+      "sortOrder": 130
+    }
+  ]
+}

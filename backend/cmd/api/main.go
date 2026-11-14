@@ -12,7 +12,6 @@ import (
 	"github.com/mattbriggs04/bitforge/backend/internal/config"
 	"github.com/mattbriggs04/bitforge/backend/internal/db"
 	"github.com/mattbriggs04/bitforge/backend/internal/httpapi"
-	"github.com/mattbriggs04/bitforge/backend/internal/queue"
 	"github.com/mattbriggs04/bitforge/backend/internal/repository"
 	"github.com/mattbriggs04/bitforge/backend/internal/service"
 )
@@ -24,39 +23,40 @@ func main() {
 	}
 
 	ctx := context.Background()
-	postgres, err := db.OpenPostgres(ctx, cfg.DatabaseURL)
+	conn, err := db.OpenDatabase(ctx, cfg.DatabaseURL)
 	if err != nil {
-		log.Fatalf("connect postgres: %v", err)
+		log.Fatalf("open database: %v", err)
 	}
-	defer postgres.Close()
+	defer conn.Close()
 
-	if err := db.RunMigrations(ctx, postgres); err != nil {
+	if err := db.RunMigrations(ctx, conn); err != nil {
 		log.Fatalf("run migrations: %v", err)
 	}
-
-	redisClient := queue.NewRedisClient(cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
-	defer redisClient.Close()
-	if err := redisClient.Ping(ctx).Err(); err != nil {
-		log.Fatalf("connect redis: %v", err)
+	if err := db.SeedMVP(ctx, conn); err != nil {
+		log.Fatalf("seed problems: %v", err)
 	}
 
-	problemsRepo := repository.NewProblemsRepository(postgres)
-	submissionsRepo := repository.NewSubmissionsRepository(postgres)
-	competitionsRepo := repository.NewCompetitionsRepository(postgres)
-	usersRepo := repository.NewUsersRepository(postgres)
-	submissionQueue := queue.NewRedisSubmissionQueue(redisClient, cfg.SubmissionQueue)
+	problemsRepo := repository.NewProblemsRepository(conn)
+	submissionsRepo := repository.NewSubmissionsRepository(conn)
+	usersRepo := repository.NewUsersRepository(conn)
 
 	problemService := service.NewProblemService(problemsRepo)
 	submissionService := service.NewSubmissionService(
 		problemsRepo,
 		submissionsRepo,
 		usersRepo,
-		submissionQueue,
 		cfg.DefaultUserHandle,
 	)
-	competitionService := service.NewCompetitionService(competitionsRepo, usersRepo, cfg.DefaultUserHandle)
-
-	srv := httpapi.NewServer(problemService, submissionService, competitionService, cfg.DefaultUserHandle)
+	resetDatabase := func(ctx context.Context) error {
+		return db.ResetDevelopmentDatabase(ctx, conn)
+	}
+	srv := httpapi.NewServer(
+		problemService,
+		submissionService,
+		cfg.DefaultUserHandle,
+		cfg.AppEnv != "production",
+		resetDatabase,
+	)
 
 	httpServer := &http.Server{
 		Addr:              ":" + cfg.HTTPPort,

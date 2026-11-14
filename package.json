@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "make dev",
+    "api": "make api",
+    "backend": "make api",
+    "frontend": "make frontend",
+    "reset-db": "make reset-db",
+    "test": "cd backend && go test ./... && cd ../frontend && npm run lint && npm run build"
+  }
+}

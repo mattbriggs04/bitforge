@@ -1,0 +1,5 @@
+- Use only the provided fixed-capacity storage.
+- No dynamic allocation.
+- All operations should be `O(1)`.
+- Leave `*out` unchanged when `pop` fails.
+- Critical sections must be balanced on every path.

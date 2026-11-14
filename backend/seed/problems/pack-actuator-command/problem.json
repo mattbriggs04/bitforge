@@ -1,0 +1,97 @@
+{
+  "slug": "pack-actuator-command",
+  "title": "Pack Actuator Command Word",
+  "difficulty": "medium",
+  "category": "Embedded C",
+  "problemType": "bit-manipulation",
+  "shortDescription": "Pack and unpack a compact 32-bit actuator command.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 30,
+    "focusAreas": ["bitfields", "packing", "signed-values"],
+    "source": "seed"
+  },
+  "tags": ["bitwise", "packing", "protocols", "signed-integers"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Pay attention to field widths and two's-complement sign extension."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "pack positive command",
+      "displayInput": "id=3 mode=5 enable=true setpoint=120",
+      "displayExpect": "fields occupy the specified bits",
+      "explanation": "Basic field packing.",
+      "codeFile": "cases/visible/pack_positive_command.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "unpack negative setpoint",
+      "displayInput": "word with 12-bit -7 setpoint",
+      "displayExpect": "setpoint=-7",
+      "explanation": "Packed signed values must be sign-extended.",
+      "codeFile": "cases/visible/unpack_negative_setpoint.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "round trip",
+      "displayInput": "pack then unpack",
+      "displayExpect": "decoded fields match inputs",
+      "explanation": "Encoder and decoder should agree.",
+      "codeFile": "cases/visible/round_trip.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "setpoint clamps high",
+      "displayInput": "setpoint=3000",
+      "displayExpect": "decoded setpoint=2047",
+      "explanation": "12-bit signed maximum is 2047.",
+      "codeFile": "cases/hidden/setpoint_clamps_high.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "setpoint clamps low",
+      "displayInput": "setpoint=-3000",
+      "displayExpect": "decoded setpoint=-2048",
+      "explanation": "12-bit signed minimum is -2048.",
+      "codeFile": "cases/hidden/setpoint_clamps_low.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "field masking",
+      "displayInput": "id=31 mode=15",
+      "displayExpect": "id=15 mode=7",
+      "explanation": "Oversized fields are masked to their encoded width.",
+      "codeFile": "cases/hidden/field_masking.c",
+      "weight": 1,
+      "sortOrder": 130
+    },
+    {
+      "name": "reserved bits clear",
+      "displayInput": "pack any command",
+      "displayExpect": "bits 20..31 are zero",
+      "explanation": "Do not leak garbage into reserved fields.",
+      "codeFile": "cases/hidden/reserved_bits_clear.c",
+      "weight": 1,
+      "sortOrder": 140
+    }
+  ]
+}

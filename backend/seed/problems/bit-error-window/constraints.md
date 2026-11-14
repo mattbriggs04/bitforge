@@ -1,0 +1,4 @@
+- Use XOR to derive the error mask.
+- Do not allocate memory.
+- Do not use compiler-specific builtins.
+- Scan every legal 8-bit window.

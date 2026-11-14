@@ -1,4 +1,4 @@
-Implement `void *bf_memcpy(void *dest, const void *src, size_t n)`.
+Implement `void *memcpy(void *dest, const void *src, size_t n)`.
 
 This routine copies bytes from `src` to `dest` and returns `dest`.
 

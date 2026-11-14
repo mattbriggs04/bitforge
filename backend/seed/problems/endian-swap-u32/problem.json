@@ -1,0 +1,79 @@
+{
+  "slug": "endian-swap-u32",
+  "title": "Read Big-Endian Fields",
+  "difficulty": "easy",
+  "category": "Embedded C",
+  "problemType": "byte-parsing",
+  "shortDescription": "Read big-endian integers and write a little-endian word without unaligned casts.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 15,
+    "focusAreas": ["endianness", "integer-widths", "bitwise"],
+    "source": "seed"
+  },
+  "tags": ["endianness", "bitwise", "data-types", "pointers"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Build values byte-by-byte; avoid pointer casts to wider integer types."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "read big endian 16",
+      "displayInput": "bytes=[12 34]",
+      "displayExpect": "0x1234",
+      "explanation": "Most-significant byte comes first.",
+      "codeFile": "cases/visible/read_be16.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "read big endian 32",
+      "displayInput": "bytes=[DE AD BE EF]",
+      "displayExpect": "0xDEADBEEF",
+      "explanation": "All shifts must be performed on a wide unsigned type.",
+      "codeFile": "cases/visible/read_be32.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "write little endian 32",
+      "displayInput": "value=0x12345678",
+      "displayExpect": "bytes=[78 56 34 12]",
+      "explanation": "Least-significant byte is stored first.",
+      "codeFile": "cases/visible/write_le32.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "offset buffer access",
+      "displayInput": "read from buf+1",
+      "displayExpect": "correct value without alignment assumptions",
+      "explanation": "Catches unaligned wide loads.",
+      "codeFile": "cases/hidden/offset_access.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "all bits set",
+      "displayInput": "bytes=[FF FF FF FF]",
+      "displayExpect": "0xFFFFFFFF",
+      "explanation": "Avoid signed overflow and sign-extension bugs.",
+      "codeFile": "cases/hidden/all_bits_set.c",
+      "weight": 1,
+      "sortOrder": 120
+    }
+  ]
+}

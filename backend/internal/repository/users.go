@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type UsersRepository struct {
@@ -125,7 +123,7 @@ func getUserByClientKeyTx(ctx context.Context, tx *sql.Tx, clientKey string) (*u
 	var row userRecord
 	if err := tx.QueryRowContext(
 		ctx,
-		`SELECT id, handle, client_key FROM users WHERE client_key = $1 FOR UPDATE`,
+		`SELECT id, handle, client_key FROM users WHERE client_key = $1`,
 		clientKey,
 	).Scan(&row.ID, &row.Handle, &row.ClientKey); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -140,7 +138,7 @@ func getUserByHandleTx(ctx context.Context, tx *sql.Tx, handle string) (*userRec
 	var row userRecord
 	if err := tx.QueryRowContext(
 		ctx,
-		`SELECT id, handle, client_key FROM users WHERE handle = $1 FOR UPDATE`,
+		`SELECT id, handle, client_key FROM users WHERE handle = $1`,
 		handle,
 	).Scan(&row.ID, &row.Handle, &row.ClientKey); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -213,27 +211,6 @@ func mergeUsersTx(ctx context.Context, tx *sql.Tx, fromUserID, toUserID string) 
 			args:  []any{toUserID, fromUserID},
 		},
 		{
-			query: `UPDATE competition_rooms SET host_user_id = $1 WHERE host_user_id = $2`,
-			args:  []any{toUserID, fromUserID},
-		},
-		{
-			query: `
-				INSERT INTO competition_room_members (room_id, user_id, is_host, joined_at)
-				SELECT room_id, $1, is_host, joined_at
-				FROM competition_room_members
-				WHERE user_id = $2
-				ON CONFLICT (room_id, user_id)
-				DO UPDATE SET
-					is_host = competition_room_members.is_host OR EXCLUDED.is_host,
-					joined_at = LEAST(competition_room_members.joined_at, EXCLUDED.joined_at)
-			`,
-			args: []any{toUserID, fromUserID},
-		},
-		{
-			query: `DELETE FROM competition_room_members WHERE user_id = $1`,
-			args:  []any{fromUserID},
-		},
-		{
 			query: `DELETE FROM users WHERE id = $1`,
 			args:  []any{fromUserID},
 		},
@@ -246,9 +223,5 @@ func mergeUsersTx(ctx context.Context, tx *sql.Tx, fromUserID, toUserID string) 
 }
 
 func isUniqueHandleError(err error) bool {
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		return pgErr.Code == "23505" && pgErr.ConstraintName == "users_handle_key"
-	}
-	return false
+	return strings.Contains(strings.ToLower(err.Error()), "unique constraint")
 }

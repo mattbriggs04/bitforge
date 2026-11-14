@@ -1,0 +1,88 @@
+{
+  "slug": "mmio-status-snapshot",
+  "title": "MMIO Status Snapshot",
+  "difficulty": "medium",
+  "category": "Embedded C",
+  "problemType": "bit-manipulation",
+  "shortDescription": "Decode a volatile status register and acknowledge write-one-to-clear flags.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 25,
+    "focusAreas": ["volatile", "mmio", "bitwise", "registers"],
+    "source": "seed"
+  },
+  "tags": ["volatile", "mmio", "bitwise", "registers"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Read the status register once, decode fields, then write the clear mask."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "all clear",
+      "displayInput": "status=0",
+      "displayExpect": "no flags and clear mask 0",
+      "explanation": "Zero status should decode to defaults.",
+      "codeFile": "cases/visible/all_clear.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "decode fields",
+      "displayInput": "ready, fault, mode 5, error 0x2a",
+      "displayExpect": "snapshot fields match",
+      "explanation": "Masks and shifts extract each register field.",
+      "codeFile": "cases/visible/decode_fields.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "acknowledge clearable flags",
+      "displayInput": "fault and overrun set",
+      "displayExpect": "clear register gets W1C mask",
+      "explanation": "Only clearable bits should be acknowledged.",
+      "codeFile": "cases/visible/ack_clearable_flags.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "reserved bits ignored",
+      "displayInput": "reserved bits set",
+      "displayExpect": "decoded fields unaffected",
+      "explanation": "Unknown bits should not leak into output.",
+      "codeFile": "cases/hidden/reserved_bits_ignored.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "null arguments",
+      "displayInput": "status=NULL or out=NULL",
+      "displayExpect": "-1",
+      "explanation": "Defensive validation before dereference.",
+      "codeFile": "cases/hidden/null_arguments.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "ready is not clearable",
+      "displayInput": "ready only",
+      "displayExpect": "clear mask remains 0",
+      "explanation": "Do not write non-W1C bits to the clear register.",
+      "codeFile": "cases/hidden/ready_not_clearable.c",
+      "weight": 1,
+      "sortOrder": 130
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+uint8_t bytes[] = {0xDEu, 0xADu, 0xBEu, 0xEFu};
+case_passed = read_be32(bytes) == 0xDEADBEEFu;

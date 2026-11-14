@@ -1,0 +1,88 @@
+{
+  "slug": "uart-framed-parser",
+  "title": "UART Framed Parser",
+  "difficulty": "hard",
+  "category": "Communication Protocols",
+  "problemType": "protocol-parser",
+  "shortDescription": "Parse a byte stream into UART frames with sync, length, and checksum.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 40,
+    "focusAreas": ["communication-protocols", "state-machines", "uart"],
+    "source": "seed"
+  },
+  "tags": ["uart", "protocols", "state-machine", "checksum"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Keep parser state explicit; frames may arrive one byte at a time."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "single valid frame",
+      "displayInput": "7e 03 10 20 30 1d",
+      "displayExpect": "payload 10 20 30",
+      "explanation": "Baseline streaming parse.",
+      "codeFile": "cases/visible/single_valid_frame.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "noise before sync",
+      "displayInput": "00 ff 7e 01 42 43",
+      "displayExpect": "payload 42",
+      "explanation": "Ignore bytes until sync.",
+      "codeFile": "cases/visible/noise_before_sync.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "bad checksum resets",
+      "displayInput": "bad frame then good frame",
+      "displayExpect": "only good frame emitted",
+      "explanation": "Parser must recover after checksum failure.",
+      "codeFile": "cases/visible/bad_checksum_resets.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "max length frame",
+      "displayInput": "length=4",
+      "displayExpect": "four payload bytes copied",
+      "explanation": "Upper payload length is valid.",
+      "codeFile": "cases/hidden/max_length_frame.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "invalid length",
+      "displayInput": "length=0 then good frame",
+      "displayExpect": "parser recovers",
+      "explanation": "Length must be 1..4.",
+      "codeFile": "cases/hidden/invalid_length.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "two frames",
+      "displayInput": "two valid frames back to back",
+      "displayExpect": "both emitted",
+      "explanation": "State must reset after frame completion.",
+      "codeFile": "cases/hidden/two_frames.c",
+      "weight": 1,
+      "sortOrder": 130
+    }
+  ]
+}

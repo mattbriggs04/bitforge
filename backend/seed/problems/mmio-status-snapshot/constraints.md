@@ -1,0 +1,4 @@
+- Treat register pointers as `volatile`.
+- Read `*status_reg` once into a local snapshot.
+- Ignore reserved bits.
+- Do not write non-clearable bits to `clear_reg`.

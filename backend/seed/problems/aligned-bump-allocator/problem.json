@@ -1,0 +1,79 @@
+{
+  "slug": "aligned-bump-allocator",
+  "title": "Aligned Bump Allocator",
+  "difficulty": "medium",
+  "category": "Embedded C",
+  "problemType": "memory-management",
+  "shortDescription": "Allocate aligned blocks from a fixed memory pool with no free operation.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 30,
+    "focusAreas": ["memory-management", "alignment", "constraints"],
+    "source": "seed"
+  },
+  "tags": ["memory", "alignment", "allocator", "pointers"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Use uintptr_t for alignment math."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "basic sequential alloc",
+      "displayInput": "pool=32, alloc 8 then 4",
+      "displayExpect": "non-null increasing pointers",
+      "explanation": "Bump pointer advances monotonically.",
+      "codeFile": "cases/visible/basic_sequential_alloc.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "alignment padding",
+      "displayInput": "alloc 1 byte aligned to 8",
+      "displayExpect": "returned pointer is 8-byte aligned",
+      "explanation": "Allocator may skip bytes to satisfy alignment.",
+      "codeFile": "cases/visible/alignment_padding.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "out of memory",
+      "displayInput": "pool=8, alloc 16",
+      "displayExpect": "NULL",
+      "explanation": "Failed allocations must not advance the cursor.",
+      "codeFile": "cases/visible/out_of_memory.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "zero size allocation",
+      "displayInput": "size=0",
+      "displayExpect": "NULL and pool unchanged",
+      "explanation": "Zero-byte allocations are rejected.",
+      "codeFile": "cases/hidden/zero_size_allocation.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "failed alloc preserves remaining",
+      "displayInput": "valid alloc, failing alloc, valid alloc",
+      "displayExpect": "third allocation succeeds",
+      "explanation": "Do not consume memory on failure.",
+      "codeFile": "cases/hidden/failed_alloc_preserves_remaining.c",
+      "weight": 1,
+      "sortOrder": 120
+    }
+  ]
+}

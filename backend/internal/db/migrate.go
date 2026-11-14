@@ -14,7 +14,7 @@ func RunMigrations(ctx context.Context, conn *sql.DB) error {
 	if _, err := conn.ExecContext(ctx, `
 		CREATE TABLE IF NOT EXISTS schema_migrations (
 			name TEXT PRIMARY KEY,
-			applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+			applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 		)
 	`); err != nil {
 		return fmt.Errorf("create schema_migrations: %w", err)
@@ -35,13 +35,6 @@ func RunMigrations(ctx context.Context, conn *sql.DB) error {
 	sort.Strings(files)
 
 	for _, name := range files {
-		var exists bool
-		if err := conn.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE name=$1)`, name).Scan(&exists); err != nil {
-			return fmt.Errorf("check migration %s: %w", name, err)
-		}
-		if exists {
-			continue
-		}
 
 		sqlBytes, err := migrations.FS.ReadFile(name)
 		if err != nil {
@@ -51,6 +44,22 @@ func RunMigrations(ctx context.Context, conn *sql.DB) error {
 		tx, err := conn.BeginTx(ctx, nil)
 		if err != nil {
 			return fmt.Errorf("begin migration tx %s: %w", name, err)
+		}
+
+		// Acquire SQLite's writer lock before checking, so API/worker startup cannot
+		// apply the same ALTER TABLE migration concurrently.
+		if _, err := tx.ExecContext(ctx, `UPDATE schema_migrations SET name=name WHERE name=$1`, name); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+		var exists bool
+		if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE name=$1)`, name).Scan(&exists); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+		if exists {
+			_ = tx.Rollback()
+			continue
 		}
 
 		if _, err := tx.ExecContext(ctx, string(sqlBytes)); err != nil {

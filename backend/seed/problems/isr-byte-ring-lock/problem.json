@@ -1,0 +1,116 @@
+{
+  "slug": "isr-byte-ring-lock",
+  "title": "ISR Byte Ring With Critical Sections",
+  "difficulty": "hard",
+  "category": "Embedded C",
+  "problemType": "concurrency",
+  "shortDescription": "Implement an ISR producer ring buffer with locked main-loop reads.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 35,
+    "focusAreas": ["ring-buffer", "critical-sections", "isr", "volatile"],
+    "source": "seed"
+  },
+  "tags": ["ring-buffer", "locks", "isr", "critical-section", "volatile"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Treat push as ISR context. Main-loop pop and size must use the critical-section hooks."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11",
+      "prelude": "static int lock_depth;\nstatic int lock_enter_count;\nstatic int lock_exit_count;\nstatic int lock_balance_errors;\n\nvoid test_reset_lock_stats(void) {\n    lock_depth = 0;\n    lock_enter_count = 0;\n    lock_exit_count = 0;\n    lock_balance_errors = 0;\n}\n\nvoid enter_critical(void) {\n    lock_enter_count++;\n    if (lock_depth != 0) {\n        lock_balance_errors++;\n    }\n    lock_depth++;\n}\n\nvoid exit_critical(void) {\n    lock_exit_count++;\n    if (lock_depth != 1) {\n        lock_balance_errors++;\n    }\n    if (lock_depth > 0) {\n        lock_depth--;\n    }\n}\n\nint test_lock_enters(void) { return lock_enter_count; }\nint test_lock_exits(void) { return lock_exit_count; }\nint test_lock_depth(void) { return lock_depth; }\nint test_lock_errors(void) { return lock_balance_errors; }\n"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "size locks once",
+      "displayInput": "init then size",
+      "displayExpect": "size=0 with one balanced critical section",
+      "explanation": "Main-loop snapshots must be protected.",
+      "codeFile": "cases/visible/size_locks_once.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "isr push then pop",
+      "displayInput": "push 0x11,0x22 from ISR; pop twice",
+      "displayExpect": "0x11 then 0x22",
+      "explanation": "ISR producer does not lock; main-loop pop does.",
+      "codeFile": "cases/visible/isr_push_then_pop.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "full buffer rejects push",
+      "displayInput": "push capacity + 1 bytes",
+      "displayExpect": "last push returns false",
+      "explanation": "The fixed buffer cannot overwrite unread data.",
+      "codeFile": "cases/visible/full_rejects_push.c",
+      "weight": 1,
+      "sortOrder": 30
+    },
+    {
+      "name": "wrap-around fifo",
+      "displayInput": "push, drain, refill across the end",
+      "displayExpect": "logical FIFO order is preserved",
+      "explanation": "Head and tail must wrap independently.",
+      "codeFile": "cases/visible/wraparound_fifo.c",
+      "weight": 1,
+      "sortOrder": 40
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "empty pop locks",
+      "displayInput": "pop empty buffer",
+      "displayExpect": "false with output unchanged",
+      "explanation": "Empty checks still read shared state.",
+      "codeFile": "cases/hidden/empty_pop_locks.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "push never locks",
+      "displayInput": "multiple ISR pushes",
+      "displayExpect": "no critical-section hooks called",
+      "explanation": "ISR path should not attempt to mask interrupts again.",
+      "codeFile": "cases/hidden/push_never_locks.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "many pops balanced",
+      "displayInput": "fill then drain",
+      "displayExpect": "one balanced critical section per pop",
+      "explanation": "Catches missing exits and double-enter bugs.",
+      "codeFile": "cases/hidden/many_pops_balanced.c",
+      "weight": 1,
+      "sortOrder": 130
+    },
+    {
+      "name": "size after wrap",
+      "displayInput": "wrap indices then read size",
+      "displayExpect": "exact count with one lock",
+      "explanation": "Size should be a protected snapshot, not a recomputed guess.",
+      "codeFile": "cases/hidden/size_after_wrap.c",
+      "weight": 1,
+      "sortOrder": 140
+    },
+    {
+      "name": "reuse after drain",
+      "displayInput": "fill, drain, push again",
+      "displayExpect": "buffer remains usable",
+      "explanation": "State must recover cleanly after empty.",
+      "codeFile": "cases/hidden/reuse_after_drain.c",
+      "weight": 1,
+      "sortOrder": 150
+    }
+  ]
+}

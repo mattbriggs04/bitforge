@@ -14,7 +14,7 @@ async function sleep(ms: number): Promise<void> {
 }
 
 async function fetchUpstreamWithRetry(url: string, init: RequestInit): Promise<Response> {
-  const attempts = 3;
+  const attempts = init.method === "GET" || init.method === "HEAD" ? 3 : 1;
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {

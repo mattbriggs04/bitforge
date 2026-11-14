@@ -65,6 +65,7 @@ type diskProblemSpec struct {
 	Short           string         `json:"shortDescription"`
 	StatementFile   string         `json:"statementFile"`
 	ConstraintsFile string         `json:"constraintsFile"`
+	SolutionFile    string         `json:"solutionFile"`
 	Metadata        map[string]any `json:"metadata"`
 	Tags            []string       `json:"tags"`
 	Templates       []diskTemplate `json:"templates"`
@@ -109,11 +110,7 @@ func SeedMVP(ctx context.Context, conn *sql.DB) error {
 	if err != nil {
 		return fmt.Errorf("begin seed tx: %w", err)
 	}
-	defer func() {
-		if err != nil {
-			_ = tx.Rollback()
-		}
-	}()
+	defer tx.Rollback()
 
 	if _, err := tx.ExecContext(ctx, `
 		INSERT INTO users (handle, email)
@@ -274,6 +271,17 @@ func convertProblemSpec(problemDir string, spec diskProblemSpec) (seedProblem, e
 	metadata := spec.Metadata
 	if metadata == nil {
 		metadata = map[string]any{}
+	} else {
+		metadata = cloneMetadata(metadata)
+	}
+	if spec.SolutionFile != "" {
+		solution, err := readSeedText(problemDir, spec.SolutionFile)
+		if err != nil {
+			return seedProblem{}, fmt.Errorf("read solution: %w", err)
+		}
+		if _, exists := metadata["solutionMarkdown"]; !exists {
+			metadata["solutionMarkdown"] = solution
+		}
 	}
 	judgeConfig := spec.Judge.Config
 	if judgeConfig == nil {
@@ -321,6 +329,14 @@ func convertCases(problemDir string, source []diskCase, hidden bool) ([]seedCase
 	return cases, nil
 }
 
+func cloneMetadata(source map[string]any) map[string]any {
+	clone := make(map[string]any, len(source))
+	for key, value := range source {
+		clone[key] = value
+	}
+	return clone
+}
+
 func readSeedText(problemDir, relativePath string) (string, error) {
 	if relativePath == "" {
 		return "", fmt.Errorf("file path is required")
@@ -352,7 +368,7 @@ func upsertProblem(ctx context.Context, tx *sql.Tx, p seedProblem) (string, erro
 			is_published,
 			updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, TRUE, now())
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, TRUE, CURRENT_TIMESTAMP)
 		ON CONFLICT (slug)
 		DO UPDATE SET
 			title = EXCLUDED.title,
@@ -364,7 +380,7 @@ func upsertProblem(ctx context.Context, tx *sql.Tx, p seedProblem) (string, erro
 			constraints_md = EXCLUDED.constraints_md,
 			metadata = EXCLUDED.metadata,
 			is_published = TRUE,
-			updated_at = now()
+			updated_at = CURRENT_TIMESTAMP
 		RETURNING id
 	`
 	var id string
@@ -417,7 +433,7 @@ func replaceProblemRelations(ctx context.Context, tx *sql.Tx, problemID string, 
 	for _, asset := range p.Assets {
 		if _, err := tx.ExecContext(ctx, `
 			INSERT INTO problem_assets (problem_id, asset_type, name, mime_type, content_text, is_hidden, metadata)
-			VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
 		`, problemID, asset.AssetType, asset.Name, asset.MIMEType, asset.Content, asset.Hidden, mustJSON(asset.Metadata)); err != nil {
 			return fmt.Errorf("insert asset %s for %s: %w", asset.Name, p.Slug, err)
 		}
@@ -425,7 +441,7 @@ func replaceProblemRelations(ctx context.Context, tx *sql.Tx, problemID string, 
 
 	if _, err := tx.ExecContext(ctx, `
 		INSERT INTO problem_judge_configs (problem_id, runner, config, updated_at)
-		VALUES ($1, $2, $3::jsonb, now())
+		VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
 	`, problemID, p.JudgeRunner, mustJSON(p.JudgeConfig)); err != nil {
 		return fmt.Errorf("insert judge config for %s: %w", p.Slug, err)
 	}
@@ -442,7 +458,7 @@ func replaceProblemRelations(ctx context.Context, tx *sql.Tx, problemID string, 
 			weight,
 			sort_order
 		)
-		VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	`
 	for _, c := range append(p.VisibleCases, p.HiddenCases...) {
 		if _, err := tx.ExecContext(

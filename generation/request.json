@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "seed": 0,
+  "category": "random",
+  "format": "random",
+  "language": "python",
+  "difficulty": "medium",
+  "level": "graduate course or full-time interview",
+  "topic": "random",
+  "targetMinutes": 25,
+  "avoid": [
+    "stable log-sum-exp",
+    "ADC bit-depth sizing",
+    "lost-update counter"
+  ]
+}

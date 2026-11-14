@@ -1,5 +1,9 @@
 "use client";
 
+import { useTheme } from "@/lib/theme";
+import { configureEditor } from "@/lib/editor-theme";
+import { AnswerWorkbench } from "@/components/answer-workbench";
+
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { ProblemDetail, Submission, SubmissionCaseResult } from "@/lib/types";
@@ -7,7 +11,7 @@ import { loadOrCreateUserKey, loadStoredUsername } from "@/lib/username";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
-  loading: () => <div className="editor-loading">Loading editor...</div>,
+  loading: () => <div className="editor-loading">Loading editor…</div>,
 });
 
 type Props = {
@@ -62,9 +66,16 @@ function caseStatusClass(status: string): string {
 }
 
 export function ProblemWorkbench({ problem }: Props) {
+  if (["single_choice", "multiple_select", "numeric"].includes(problem.problemType)) return <AnswerWorkbench key={problem.slug} problem={problem} />;
+  return <CodeWorkbench key={problem.slug} problem={problem} />;
+}
+
+function CodeWorkbench({ problem }: Props) {
+  const theme = useTheme();
+  const [language, setLanguage] = useState(problem.languageTemplates[0]?.language ?? "c");
   const defaultTemplate = useMemo(
-    () => problem.languageTemplates.find((item) => item.language === "c") ?? problem.languageTemplates[0],
-    [problem.languageTemplates],
+    () => problem.languageTemplates.find((item) => item.language === language) ?? problem.languageTemplates[0],
+    [problem.languageTemplates, language],
   );
 
   const [code, setCode] = useState(defaultTemplate?.starterCode ?? "");
@@ -72,12 +83,20 @@ export function ProblemWorkbench({ problem }: Props) {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [pollRetry, setPollRetry] = useState(0);
+  const [pollPaused, setPollPaused] = useState(false);
   const [userHandle, setUserHandle] = useState("demo");
   const [userKey, setUserKey] = useState("");
 
+  const draftKey = `bitforge:code:${problem.slug}:${problem.metadata.bundleHash ?? "legacy"}:${language}`;
   useEffect(() => {
-    setCode(defaultTemplate?.starterCode ?? "");
-  }, [defaultTemplate?.starterCode]);
+    try { setCode(localStorage.getItem(draftKey) ?? defaultTemplate?.starterCode ?? ""); }
+    catch { setCode(defaultTemplate?.starterCode ?? ""); }
+  }, [defaultTemplate?.starterCode, draftKey]);
+  function updateCode(value: string) {
+    setCode(value);
+    try { localStorage.setItem(draftKey, value); } catch { /* Storage may be disabled. */ }
+  }
 
   useEffect(() => {
     setUserKey(loadOrCreateUserKey());
@@ -93,6 +112,8 @@ export function ProblemWorkbench({ problem }: Props) {
     }
 
     let active = true;
+    let failures = 0;
+    setPollPaused(false);
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     const poll = async (): Promise<void> => {
@@ -102,6 +123,7 @@ export function ProblemWorkbench({ problem }: Props) {
           return;
         }
         setSubmission(latest);
+        failures = 0; setError("");
         if (latest.status === "queued" || latest.status === "running") {
           timer = setTimeout(poll, 900);
         }
@@ -109,6 +131,8 @@ export function ProblemWorkbench({ problem }: Props) {
         if (!active) {
           return;
         }
+        if (++failures < 4) { timer = setTimeout(poll, failures * 1500); return; }
+        setPollPaused(true);
         setError(pollErr instanceof Error ? pollErr.message : "Failed to poll submission");
       }
     };
@@ -121,7 +145,7 @@ export function ProblemWorkbench({ problem }: Props) {
         clearTimeout(timer);
       }
     };
-  }, [submissionID]);
+  }, [submissionID, pollRetry]);
 
   const startSubmission = async (mode: SubmissionMode): Promise<void> => {
     if (!code.trim()) {
@@ -136,6 +160,7 @@ export function ProblemWorkbench({ problem }: Props) {
     setIsSubmitting(true);
     setError("");
     setSubmission(null);
+    setSubmissionID("");
 
     try {
       const response = await fetch("/api/backend/v1/submissions", {
@@ -147,7 +172,7 @@ export function ProblemWorkbench({ problem }: Props) {
         },
         body: JSON.stringify({
           problemSlug: problem.slug,
-          language: "c",
+          language,
           mode,
           sourceCode: code,
         }),
@@ -171,19 +196,34 @@ export function ProblemWorkbench({ problem }: Props) {
     [submission],
   );
 
-  const inFlight = submission?.status === "queued" || submission?.status === "running";
+  const inFlight = !pollPaused && Boolean(submissionID) && (!submission || submission.status === "queued" || submission.status === "running");
 
   return (
     <section className="solve-section">
+      <div className="solve-toolbar">
+        <label>Language <select value={language} onChange={(e) => setLanguage(e.target.value)} disabled={isSubmitting || inFlight}>
+          {problem.languageTemplates.map((template) => <option key={template.language} value={template.language}>{({ c: "C11", cpp: "C++20", python: "Python 3 + NumPy", rust: "Rust 2021" } as Record<string,string>)[template.language] ?? template.language}</option>)}
+        </select></label>
+        <p className="debug-hint">
+          {problem.problemType === "coding" ? "stdin → stdout" : "Function implementation"}
+        </p>
+      </div>
       <div className="editor-wrap">
         <MonacoEditor
-          height="640px"
-          language="c"
-          theme="vs-dark"
+          height="560px"
+          language={language === "cpp" ? "cpp" : language}
+          theme={`bitforge-${theme}`}
+          beforeMount={configureEditor}
           value={code}
-          onChange={(value) => setCode(value ?? "")}
+          onChange={(value) => updateCode(value ?? "")}
           options={{
-            fontSize: 14,
+            fontSize: 13,
+            fontFamily: "SFMono-Regular, Consolas, Liberation Mono, monospace",
+            fontLigatures: false,
+            overviewRulerLanes: 0,
+            hideCursorInOverviewRuler: true,
+            renderLineHighlight: "none",
+            scrollbar: { verticalScrollbarSize: 5, horizontalScrollbarSize: 5 },
             minimap: { enabled: false },
             lineNumbersMinChars: 3,
             padding: { top: 16 },
@@ -193,10 +233,10 @@ export function ProblemWorkbench({ problem }: Props) {
         />
       </div>
 
-      {defaultTemplate?.notes ? <p className="template-note">Template note: {defaultTemplate.notes}</p> : null}
       <div className="solve-actions solve-actions-footer">
-        <button className="btn btn-muted" type="button" onClick={() => setCode(defaultTemplate?.starterCode ?? "")}>
-          Reset Starter
+        <span className="draft-status">Draft saved locally</span>
+        <button className="btn btn-muted" type="button" onClick={() => { if (window.confirm("Reset this draft to the starter code?")) updateCode(defaultTemplate?.starterCode ?? ""); }}>
+          Reset
         </button>
         <button
           className="btn btn-muted"
@@ -204,7 +244,7 @@ export function ProblemWorkbench({ problem }: Props) {
           disabled={isSubmitting || inFlight}
           onClick={() => void startSubmission("run")}
         >
-          Run Samples
+          Run
         </button>
         <button
           className="btn btn-primary"
@@ -218,18 +258,18 @@ export function ProblemWorkbench({ problem }: Props) {
 
       <section className="judge-terminal" aria-live="polite">
         <div className="judge-terminal-head">
-          <h3>Test Terminal</h3>
-          {submissionID ? <code>submission: {submissionID.slice(0, 12)}</code> : <code>idle</code>}
+          <h3>Results</h3>
+          {submissionID ? <code>{submissionID.slice(0, 8)}</code> : <code>idle</code>}
         </div>
 
         <div className="judge-terminal-body">
-          {error ? <p className="terminal-line terminal-line-error">[error] {error}</p> : null}
+          {error ? <p className="terminal-line terminal-line-error">[error] {error} {pollPaused ? <button className="btn btn-muted" onClick={() => setPollRetry((n) => n + 1)}>Retry results</button> : null}</p> : null}
 
           {!submission && !error ? (
-            <p className="terminal-line terminal-line-dim">$ Ready. Run samples or submit to start evaluation.</p>
+            <p className="terminal-line terminal-line-dim">Run examples or submit.</p>
           ) : null}
 
-          {inFlight ? <p className="terminal-line terminal-line-dim">$ Judge pipeline running...</p> : null}
+          {inFlight ? <p className="terminal-line terminal-line-dim">Judging…</p> : null}
 
           {submission ? (
             <>
@@ -272,14 +312,14 @@ export function ProblemWorkbench({ problem }: Props) {
 
               {submission.compileOutput ? (
                 <details className="terminal-details">
-                  <summary>Compile Output</summary>
+                  <summary>Compiler</summary>
                   <pre>{submission.compileOutput}</pre>
                 </details>
               ) : null}
 
               {submission.runtimeOutput ? (
                 <details className="terminal-details">
-                  <summary>Runtime Output</summary>
+                  <summary>Output</summary>
                   <pre>{submission.runtimeOutput}</pre>
                 </details>
               ) : null}

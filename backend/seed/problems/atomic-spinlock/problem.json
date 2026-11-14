@@ -1,0 +1,116 @@
+{
+  "slug": "atomic-spinlock",
+  "title": "CAS Spinlock With Owner Checks",
+  "difficulty": "medium",
+  "category": "Embedded C",
+  "problemType": "concurrency",
+  "shortDescription": "Implement a small spinlock API using an atomic compare-and-swap hook.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 25,
+    "focusAreas": ["locks", "atomics", "volatile", "ownership"],
+    "source": "seed"
+  },
+  "tags": ["locks", "spinlock", "atomic", "volatile", "critical-section"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Use the compare-and-swap hook for acquisition; direct writes are not atomic."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11",
+      "prelude": "static int atomic_cas_calls;\nstatic int atomic_force_fail;\n\nvoid test_reset_atomic(void) {\n    atomic_cas_calls = 0;\n    atomic_force_fail = 0;\n}\n\nvoid test_force_cas_failure(int force) {\n    atomic_force_fail = force ? 1 : 0;\n}\n\nint test_cas_calls(void) {\n    return atomic_cas_calls;\n}\n\nbool atomic_compare_exchange_u8(volatile uint8_t *addr, uint8_t expected, uint8_t desired) {\n    atomic_cas_calls++;\n    if (atomic_force_fail) {\n        return false;\n    }\n    if (*addr != expected) {\n        return false;\n    }\n    *addr = desired;\n    return true;\n}\n"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "initial state",
+      "displayInput": "init",
+      "displayExpect": "unlocked with owner 0",
+      "explanation": "Initialization clears both lock state and owner.",
+      "codeFile": "cases/visible/initial_state.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "try lock succeeds",
+      "displayInput": "owner 42 acquires",
+      "displayExpect": "locked=true, owner=42, one CAS",
+      "explanation": "Acquisition must go through the atomic hook.",
+      "codeFile": "cases/visible/try_lock_succeeds.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "double lock fails",
+      "displayInput": "owner 1 acquires, owner 2 tries",
+      "displayExpect": "owner remains 1",
+      "explanation": "A held lock cannot be acquired by another owner.",
+      "codeFile": "cases/visible/double_lock_fails.c",
+      "weight": 1,
+      "sortOrder": 30
+    },
+    {
+      "name": "owner unlocks",
+      "displayInput": "owner 7 locks then unlocks",
+      "displayExpect": "lock becomes available",
+      "explanation": "Only the owner can release the lock.",
+      "codeFile": "cases/visible/owner_unlocks.c",
+      "weight": 1,
+      "sortOrder": 40
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "owner zero rejected",
+      "displayInput": "try owner 0",
+      "displayExpect": "false and unlocked",
+      "explanation": "Owner id 0 is reserved for no owner.",
+      "codeFile": "cases/hidden/owner_zero_rejected.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "wrong owner cannot unlock",
+      "displayInput": "owner 3 locks, owner 4 unlocks",
+      "displayExpect": "unlock=false, owner remains 3",
+      "explanation": "Ownership must be enforced.",
+      "codeFile": "cases/hidden/wrong_owner_cannot_unlock.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "cas failure stays unlocked",
+      "displayInput": "forced CAS failure",
+      "displayExpect": "try_lock=false with owner 0",
+      "explanation": "Do not update owner if acquisition fails.",
+      "codeFile": "cases/hidden/cas_failure_stays_unlocked.c",
+      "weight": 1,
+      "sortOrder": 130
+    },
+    {
+      "name": "unlock unlocked fails",
+      "displayInput": "unlock fresh lock",
+      "displayExpect": "false",
+      "explanation": "Unlock should not succeed without a held lock.",
+      "codeFile": "cases/hidden/unlock_unlocked_fails.c",
+      "weight": 1,
+      "sortOrder": 140
+    },
+    {
+      "name": "retry after failed cas",
+      "displayInput": "forced failure then normal acquire",
+      "displayExpect": "second acquire succeeds",
+      "explanation": "Failed attempts must leave the lock reusable.",
+      "codeFile": "cases/hidden/retry_after_failed_cas.c",
+      "weight": 1,
+      "sortOrder": 150
+    }
+  ]
+}

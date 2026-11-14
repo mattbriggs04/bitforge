@@ -1,0 +1,4 @@
+- Store parser state in `uart_parser_t`.
+- No dynamic allocation.
+- Ignore noise before sync.
+- Invalid length or checksum resets the parser.

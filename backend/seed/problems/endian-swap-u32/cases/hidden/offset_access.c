@@ -1,0 +1,2 @@
+uint8_t bytes[] = {0x00u, 0x01u, 0x23u, 0x45u, 0x67u, 0x99u};
+case_passed = read_be16(bytes + 1) == 0x0123u && read_be32(bytes + 2) == 0x23456799u;

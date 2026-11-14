@@ -1,0 +1,4 @@
+- `align` is a non-zero power of two.
+- Return `NULL` for zero-size requests or insufficient space.
+- Failed allocations must not change allocator state.
+- Do not call `malloc`, `calloc`, `realloc`, or `free`.

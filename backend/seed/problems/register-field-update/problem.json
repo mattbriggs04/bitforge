@@ -1,0 +1,70 @@
+{
+  "slug": "register-field-update",
+  "title": "Update a Volatile Register Field",
+  "difficulty": "easy",
+  "category": "Embedded C",
+  "problemType": "register-manipulation",
+  "shortDescription": "Modify a masked field in a volatile register while preserving unrelated bits.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 15,
+    "focusAreas": ["volatile", "bitwise", "registers"],
+    "source": "seed"
+  },
+  "tags": ["volatile", "registers", "bitwise", "read-modify-write"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Read once, update the masked field, then write once."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "set low field",
+      "displayInput": "reg=0xFFFF0000, mask=0x0000000F, value=5",
+      "displayExpect": "reg=0xFFFF0005",
+      "explanation": "Only masked bits should change.",
+      "codeFile": "cases/visible/set_low_field.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "replace shifted field",
+      "displayInput": "mask=0x000000F0, shift=4, value=0xA",
+      "displayExpect": "field becomes 0xA",
+      "explanation": "Value is shifted into the target field.",
+      "codeFile": "cases/visible/replace_shifted_field.c",
+      "weight": 1,
+      "sortOrder": 20
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "truncate wide value",
+      "displayInput": "4-bit field, value=0x3F",
+      "displayExpect": "field stores 0xF",
+      "explanation": "Input value must be clipped by the mask.",
+      "codeFile": "cases/hidden/truncate_wide_value.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "return previous value",
+      "displayInput": "reg starts 0xA5A55A5A",
+      "displayExpect": "function returns old register value",
+      "explanation": "Callers may need the previous register state.",
+      "codeFile": "cases/hidden/return_previous_value.c",
+      "weight": 1,
+      "sortOrder": 120
+    }
+  ]
+}

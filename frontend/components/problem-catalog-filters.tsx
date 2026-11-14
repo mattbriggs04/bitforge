@@ -1,5 +1,6 @@
 "use client";
 
+import { problemLabel } from "@/lib/problem-labels";
 import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -79,7 +80,7 @@ export function ProblemCatalogFilters({ q, difficulty, category, tag, categories
           name="q"
           value={searchText}
           onChange={(event) => setSearchText(event.target.value)}
-          placeholder="strlen, packet parsing, ring buffer..."
+          placeholder="Find a problem…"
         />
       </label>
 
@@ -125,7 +126,7 @@ export function ProblemCatalogFilters({ q, difficulty, category, tag, categories
           <option value="">All</option>
           {categories.map((item) => (
             <option key={item} value={item}>
-              {item}
+              {problemLabel(item)}
             </option>
           ))}
         </select>
@@ -150,7 +151,7 @@ export function ProblemCatalogFilters({ q, difficulty, category, tag, categories
           <option value="">All</option>
           {tags.map((item) => (
             <option key={item} value={item}>
-              {item}
+              {problemLabel(item)}
             </option>
           ))}
         </select>

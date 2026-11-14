@@ -1,0 +1,88 @@
+{
+  "slug": "can-control-frame",
+  "title": "Decode CAN Control Frame",
+  "difficulty": "medium",
+  "category": "Communication Protocols",
+  "problemType": "protocol-parser",
+  "shortDescription": "Decode mixed-endian fields from an 8-byte CAN control frame.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 30,
+    "focusAreas": ["communication-protocols", "endianness", "bitwise"],
+    "source": "seed"
+  },
+  "tags": ["can", "endianness", "protocols", "bitwise"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Decode bytes explicitly; do not cast the payload to a struct."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "valid command",
+      "displayInput": "8-byte payload",
+      "displayExpect": "torque, speed, flags, counter decoded",
+      "explanation": "Baseline mixed-endian decode.",
+      "codeFile": "cases/visible/valid_command.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "negative torque",
+      "displayInput": "little-endian int16 torque",
+      "displayExpect": "negative torque preserved",
+      "explanation": "Signed 16-bit values need correct reconstruction.",
+      "codeFile": "cases/visible/negative_torque.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "bad checksum",
+      "displayInput": "checksum mismatch",
+      "displayExpect": "-3",
+      "explanation": "Reject corrupted CAN payloads.",
+      "codeFile": "cases/visible/bad_checksum.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "short payload",
+      "displayInput": "len=7",
+      "displayExpect": "-2",
+      "explanation": "CAN frame length must be validated.",
+      "codeFile": "cases/hidden/short_payload.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "null arguments",
+      "displayInput": "payload=NULL or out=NULL",
+      "displayExpect": "-1",
+      "explanation": "Defensive validation.",
+      "codeFile": "cases/hidden/null_arguments.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "flag decoding",
+      "displayInput": "armed and fault flags set",
+      "displayExpect": "booleans true",
+      "explanation": "Status flags are independent bits.",
+      "codeFile": "cases/hidden/flag_decoding.c",
+      "weight": 1,
+      "sortOrder": 130
+    }
+  ]
+}

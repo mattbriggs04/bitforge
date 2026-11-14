@@ -1,0 +1,4 @@
+- `reg` is non-null.
+- `mask` is non-zero.
+- `shift` is less than 32.
+- Treat `reg` as memory-mapped I/O: use the volatile object directly.

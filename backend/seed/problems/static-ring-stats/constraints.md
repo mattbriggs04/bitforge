@@ -1,0 +1,4 @@
+- Use internal static storage.
+- No dynamic allocation.
+- Empty `min`, `max`, and `avg` return `0`.
+- Avoid accumulator overflow for eight `uint16_t` samples.

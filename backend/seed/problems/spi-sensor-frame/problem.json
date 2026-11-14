@@ -1,0 +1,88 @@
+{
+  "slug": "spi-sensor-frame",
+  "title": "Parse an SPI Sensor Frame",
+  "difficulty": "medium",
+  "category": "Communication Protocols",
+  "problemType": "protocol-parser",
+  "shortDescription": "Validate and parse a fixed-length SPI sensor response with sync and checksum bytes.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 30,
+    "focusAreas": ["communication-protocols", "endianness", "bitwise"],
+    "source": "seed"
+  },
+  "tags": ["spi", "protocols", "checksum", "endianness"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Validate the frame before writing parsed output."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "valid channel zero",
+      "displayInput": "A5 00 12 34 83",
+      "displayExpect": "channel=0, fault=false, value=0x1234",
+      "explanation": "Baseline valid SPI frame.",
+      "codeFile": "cases/visible/valid_channel_zero.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "fault bit set",
+      "displayInput": "status bit 7 set",
+      "displayExpect": "fault=true",
+      "explanation": "Status bits need masking.",
+      "codeFile": "cases/visible/fault_bit_set.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "bad checksum",
+      "displayInput": "checksum mismatch",
+      "displayExpect": "-4",
+      "explanation": "Reject corrupted frames.",
+      "codeFile": "cases/visible/bad_checksum.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "invalid sync",
+      "displayInput": "first byte != 0xA5",
+      "displayExpect": "-3",
+      "explanation": "Frame alignment must be checked.",
+      "codeFile": "cases/hidden/invalid_sync.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "short frame",
+      "displayInput": "len=4",
+      "displayExpect": "-2",
+      "explanation": "Parser must check length first.",
+      "codeFile": "cases/hidden/short_frame.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "null arguments",
+      "displayInput": "rx=NULL or out=NULL",
+      "displayExpect": "-1",
+      "explanation": "Defensive API validation.",
+      "codeFile": "cases/hidden/null_arguments.c",
+      "weight": 1,
+      "sortOrder": 130
+    }
+  ]
+}

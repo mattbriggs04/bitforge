@@ -1,0 +1,18 @@
+{
+  "bundleHash": "2fe77d8aac51efe77098eb58fe9526bc4aea68e63c402e3094b0d7bec5806c2e",
+  "image": "sha256:349427674da1368b2efa275a6332cd4008a80afdc66bb9d332d372c814ba5711",
+  "validatedAt": "2026-11-14T19:29:15.541473Z",
+  "cases": [
+    {
+      "name": "answer",
+      "input": "",
+      "expected": "12",
+      "hidden": true
+    }
+  ],
+  "mutantsRejected": 0,
+  "checks": [
+    "schema and answer contract",
+    "executable independent verifier"
+  ]
+}

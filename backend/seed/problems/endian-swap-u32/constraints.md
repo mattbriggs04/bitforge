@@ -1,0 +1,4 @@
+- `p` is non-null and points to enough bytes.
+- Code must work on little-endian and big-endian hosts.
+- Avoid unaligned loads/stores.
+- Use fixed-width integer types.

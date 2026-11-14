@@ -1,0 +1,5 @@
+- Store all scheduler state internally.
+- No dynamic allocation.
+- `task_create` returns `0` on success and `-1` for invalid or duplicate ids.
+- `task_set_ready` and `task_delay` ignore invalid or uncreated ids.
+- A delay of `0` leaves the task ready.

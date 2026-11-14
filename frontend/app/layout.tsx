@@ -2,10 +2,20 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BitForge | Systems Interview Practice",
+  title: "BitForge",
   description:
-    "Firmware, embedded, networking, and low-level security interview practice with C-first problem workflows.",
+    "Daily practice in systems, AI, and math.",
 };
+
+const themeScript = `
+try {
+  var theme = localStorage.getItem("bf-theme");
+  if (theme !== "dark" && theme !== "light") {
+    theme = "dark";
+  }
+  document.documentElement.dataset.theme = theme;
+} catch (_) { document.documentElement.dataset.theme = "dark"; }
+`;
 
 export default function RootLayout({
   children,
@@ -13,8 +23,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
+      <body>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {children}
+      </body>
     </html>
   );
 }

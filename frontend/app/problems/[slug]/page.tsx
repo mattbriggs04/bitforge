@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { problemLabel } from "@/lib/problem-labels";
 import { notFound } from "next/navigation";
 import { ProblemWorkspace } from "@/components/problem-workspace";
 import { SiteHeader } from "@/components/site-header";
@@ -34,24 +35,19 @@ export default async function ProblemDetailPage({ params }: PageProps) {
         <div className="problem-page-shell">
           <div className="problem-page-head">
             <div>
-              <p className="eyebrow">Problem</p>
               <h1>{problem.title}</h1>
-              <p>{problem.shortDescription}</p>
             </div>
             <Link href="/problems" className="btn btn-muted">
-              Back to Catalog
+              ← All problems
             </Link>
           </div>
 
           <div className="problem-meta-row">
             <span className={difficultyClass(problem.difficulty)}>{problem.difficulty}</span>
-            <span className="badge badge-category">{problem.category}</span>
-            <span className="badge badge-type">{problem.problemType}</span>
-            {problem.tags.map((tag) => (
-              <span key={tag} className="chip">
-                {tag}
-              </span>
-            ))}
+            <span className="badge badge-category">{problemLabel(problem.category)}</span>
+            <span className="badge badge-type">{problemLabel(problem.problemType)}</span>
+            {problem.completed ? <span className="badge badge-completed">Completed</span> : null}
+
           </div>
         </div>
 

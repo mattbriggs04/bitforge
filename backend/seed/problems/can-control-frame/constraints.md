@@ -1,0 +1,4 @@
+- Decode bytes explicitly.
+- Do not cast the payload to a struct.
+- Preserve signed torque values.
+- Ignore reserved byte 6 except for checksum calculation.

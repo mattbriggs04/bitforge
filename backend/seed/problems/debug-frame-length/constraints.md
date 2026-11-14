@@ -1,0 +1,5 @@
+- Return `-1` for null input or buffers shorter than 3 bytes.
+- Return `-2` for invalid sync.
+- Return `-3` when the declared payload length does not fit in `len`.
+- Length is big-endian.
+- Do not read past the supplied buffer.

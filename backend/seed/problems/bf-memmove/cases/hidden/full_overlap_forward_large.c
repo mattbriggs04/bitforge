@@ -5,5 +5,5 @@ for (size_t i = 0; i < 128; i++) {
     expected[i] = (unsigned char)(i + 1);
 }
 memmove(expected + 7, expected, 90);
-void *ret = bf_memmove(buf + 7, buf, 90);
+void *ret = memmove(buf + 7, buf, 90);
 case_passed = (ret == (buf + 7)) && memcmp(buf, expected, 128) == 0;

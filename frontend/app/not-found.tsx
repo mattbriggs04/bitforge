@@ -6,10 +6,10 @@ export default function NotFound() {
     <div className="site-root">
       <SiteHeader />
       <main className="container" style={{ paddingTop: "5rem", paddingBottom: "5rem" }}>
-        <h1>Resource Not Found</h1>
-        <p>The requested page or problem does not exist.</p>
+        <h1>Not found.</h1>
+        <p>This page doesn’t exist.</p>
         <Link href="/problems" className="btn btn-primary">
-          Back to Problems
+          All problems
         </Link>
       </main>
     </div>

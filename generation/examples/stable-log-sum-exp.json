@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "category": "ai_ml",
+  "difficulty": "medium",
+  "format": "coding",
+  "targetMinutes": 25,
+  "seed": 18427,
+  "provenance": "BitForge implementation example authored with Codex",
+  "objectives": [
+    "Derive and implement a numerically stable log-sum-exp reduction",
+    "Reason about floating-point overflow and translation invariance"
+  ],
+  "tags": [
+    "numerical-stability",
+    "probability",
+    "reductions"
+  ],
+  "comparator": {
+    "kind": "numeric",
+    "absolute": 1e-09,
+    "relative": 1e-09
+  },
+  "slug": "stable-log-sum-exp",
+  "title": "Stable log-sum-exp",
+  "shortDescription": "Compute a log-partition term without overflowing exponentials.",
+  "statement": "Read an integer n followed by n real values from stdin. Print log(sum(exp(x_i))) using natural logarithms. Your program must remain stable for large positive or negative logits. Print a single finite number; absolute or relative error up to 1e-9 is accepted.\n\nExample input: `2 0 0`. The result is approximately `0.6931471805599453`.",
+  "constraints": "1 <= n <= 64; each logit is finite and in [-1000, 1000]. Values are whitespace separated. Use double precision. No empty input cases are graded.",
+  "explanation": "Let m=max(x). Then log(sum(exp(x_i))) = m + log(sum(exp(x_i-m))). Every exponent is nonpositive, so no term overflows. At least one exponential equals 1, avoiding an all-zero sum. The independent verifier uses high-precision Decimal arithmetic without the maximum-shift transformation.",
+  "reviewNotes": "Anchor values follow analytically: one logit is unchanged; two zeros give ln(2); equal logits give x+ln(n). The independent Decimal implementation uses 60 digits and direct exponentials. Mutants omit the logarithm or normalize by n. Generated inputs include +/-1000 and narrow/large spreads.",
+  "references": [
+    {
+      "language": "python",
+      "source": "import sys, math\na=list(map(float,sys.stdin.read().split()))\nx=a[1:]\nm=max(x)\nprint(m+math.log(math.fsum(math.exp(v-m) for v in x)))\n"
+    },
+    {
+      "language": "c",
+      "source": "#include <stdio.h>\n#include <math.h>\nint main(void){int n; if(scanf(\"%d\",&n)!=1)return 1; double a[64],m=-INFINITY,s=0;for(int i=0;i<n;i++){scanf(\"%lf\",&a[i]);if(a[i]>m)m=a[i];}for(int i=0;i<n;i++)s+=exp(a[i]-m);printf(\"%.17g\\n\",m+log(s));return 0;}\n"
+    },
+    {
+      "language": "cpp",
+      "source": "#include <iostream>\n#include <iomanip>\n#include <vector>\n#include <cmath>\n#include <algorithm>\nint main(){int n;std::cin>>n;std::vector<double>a(n);for(auto &v:a)std::cin>>v;double m=*std::max_element(a.begin(),a.end()),s=0;for(auto v:a)s+=std::exp(v-m);std::cout<<std::setprecision(17)<<m+std::log(s)<<\"\\n\";}\n"
+    },
+    {
+      "language": "rust",
+      "source": "use std::io::{self, Read};\nfn main(){let mut s=String::new();io::stdin().read_to_string(&mut s).unwrap();let mut it=s.split_whitespace();let n:usize=it.next().unwrap().parse().unwrap();let x:Vec<f64>=it.take(n).map(|v|v.parse().unwrap()).collect();let m=x.iter().copied().fold(f64::NEG_INFINITY,f64::max);let z:f64=x.iter().map(|v|(v-m).exp()).sum();println!(\"{:.16}\",m+z.ln());}\n"
+    }
+  ],
+  "templates": {
+    "python": "import sys\n\ndef main():\n    tokens = sys.stdin.read().split()\n    n = int(tokens[0])\n    logits = list(map(float, tokens[1:1+n]))\n    # TODO: compute the stable log-sum-exp.\n    print(0.0)\n\nif __name__ == \"__main__\":\n    main()\n",
+    "c": "#include <stdio.h>\nint main(void) { /* TODO: read input and compute log-sum-exp. */ printf(\"0\\n\"); return 0; }\n",
+    "cpp": "#include <iostream>\nint main() { /* TODO */ std::cout << \"0\\n\"; }\n",
+    "rust": "fn main() { /* TODO */ println!(\"0\"); }\n"
+  },
+  "independent": {
+    "language": "python",
+    "source": "import sys\nfrom decimal import Decimal, localcontext\nv=sys.stdin.read().split()[1:]\nwith localcontext() as ctx:\n    ctx.prec=60\n    print(sum((Decimal(x).exp() for x in v),Decimal(0)).ln())\n"
+  },
+  "generator": {
+    "language": "python",
+    "source": "import sys,random,json\nr=random.Random(int(sys.stdin.read()))\nc=[]\nfor i in range(20):\n n=r.randint(1,64)\n x=[r.uniform(-1000,1000) for _ in range(n)] if i%2 else [r.choice([-1000,0,1000])]*n\n c.append({\"name\":f\"seeded-{i}\",\"input\":str(n)+\" \"+\" \".join(map(str,x))+\"\\n\"})\nprint(json.dumps(c))\n"
+  },
+  "mutants": [
+    {
+      "language": "python",
+      "source": "import sys, math\na=list(map(float,sys.stdin.read().split()))\nx=a[1:]\nm=max(x)\nprint(m+math.fsum(math.exp(v-m) for v in x))\n"
+    },
+    {
+      "language": "python",
+      "source": "import sys, math\na=list(map(float,sys.stdin.read().split()))\nx=a[1:]\nm=max(x)\nprint(m+math.log(math.fsum(math.exp(v-m) for v in x)/len(x)))\n"
+    }
+  ],
+  "cases": [
+    {
+      "name": "one-large-logit",
+      "input": "1 1000\n",
+      "expected": "1000",
+      "hidden": false
+    },
+    {
+      "name": "two-zeros",
+      "input": "2 0 0\n",
+      "expected": "0.6931471805599453",
+      "hidden": false
+    },
+    {
+      "name": "equal-negative",
+      "input": "2 -1000 -1000\n",
+      "expected": "-999.3068528194401",
+      "hidden": true
+    }
+  ]
+}

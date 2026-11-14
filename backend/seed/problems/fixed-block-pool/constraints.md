@@ -1,0 +1,4 @@
+- No dynamic allocation.
+- Use only storage inside `pool_t`.
+- Returned pointers must point inside `pool->storage`.
+- Do not increase availability above `POOL_BLOCKS`.

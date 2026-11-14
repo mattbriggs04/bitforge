@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "slug": "adc-quantization-error",
+  "title": "ADC quantization error budget",
+  "category": "embedded",
+  "difficulty": "medium",
+  "format": "numeric",
+  "shortDescription": "Translate a sensor error budget into the minimum ADC resolution.",
+  "statement": "An ideal unipolar ADC spans 0 to 3.3 V with 2^b uniformly spaced quantization bins. A sensor produces 0.010 V per degree Celsius. Model worst-case quantization error as half a bin, using bin width 3.3 / 2^b V. What is the smallest integer b that guarantees error no greater than 0.05 degrees Celsius? Enter the bit count as a number.",
+  "constraints": "Ignore noise, offset, gain error and saturation. b is a positive integer. The half-bin model is specified explicitly; do not use 2^b - 1.",
+  "objectives": [
+    "Convert quantization error into physical units",
+    "Solve a logarithmic hardware sizing constraint"
+  ],
+  "tags": [
+    "adc",
+    "quantization",
+    "error-bounds"
+  ],
+  "targetMinutes": 10,
+  "seed": 18427,
+  "provenance": "BitForge implementation example authored with Codex",
+  "comparator": {
+    "kind": "numeric"
+  },
+  "answer": "12",
+  "independent": {
+    "language": "python",
+    "source": "from fractions import Fraction\nb=1\nwhile Fraction(33,10)/(2**b*2)/Fraction(1,100)>Fraction(1,20):\n    b+=1\nprint(b)\n"
+  },
+  "explanation": "The error in degrees Celsius is 3.3 / (2 \u00d7 2^b \u00d7 0.010) = 165 / 2^b. Requiring this to be at most 0.05 gives 2^b >= 3300. Thus b=12; 11 bits gives about 0.0806 degrees and 12 bits about 0.0403 degrees.",
+  "reviewNotes": "Verified by an exact rational search; the statement defines the bin-width convention and excludes analog errors."
+}

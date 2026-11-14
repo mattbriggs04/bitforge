@@ -1,0 +1,4 @@
+- Use the provided `uint32_t bitmap` field.
+- No arrays and no dynamic allocation.
+- Avoid undefined shifts for invalid slot ids.
+- All operations should be bounded and deterministic.

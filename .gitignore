@@ -11,5 +11,10 @@ node_modules
 # go
 bin/
 
+# local sqlite
+*.db
+*.db-shm
+*.db-wal
+
 # logs
 *.log

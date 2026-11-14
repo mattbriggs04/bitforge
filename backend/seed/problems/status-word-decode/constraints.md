@@ -1,0 +1,4 @@
+- Use masks and shifts.
+- Do not use C bitfield structs.
+- Ignore reserved bits.
+- `out` is always non-null in tests.

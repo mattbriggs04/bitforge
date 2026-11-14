@@ -1,0 +1,88 @@
+{
+  "slug": "debug-frame-length",
+  "title": "Debug Frame Length Parser",
+  "difficulty": "medium",
+  "category": "Debugging",
+  "problemType": "bug-fix",
+  "shortDescription": "Fix a C frame parser with endian and bounds-checking bugs.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 25,
+    "focusAreas": ["debugging", "endianness", "memory-safety"],
+    "source": "seed"
+  },
+  "tags": ["debugging", "endianness", "bounds", "protocols"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "The starter is intentionally wrong. Use printf while running samples."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "valid short frame",
+      "displayInput": "A5 00 03 11 22 33",
+      "displayExpect": "3",
+      "explanation": "Length is a big-endian 16-bit field.",
+      "codeFile": "cases/visible/valid_short_frame.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "reject bad sync",
+      "displayInput": "first byte != A5",
+      "displayExpect": "-2",
+      "explanation": "Sync must be checked before parsing length.",
+      "codeFile": "cases/visible/reject_bad_sync.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "reject truncated payload",
+      "displayInput": "declared len=4, only 3 payload bytes",
+      "displayExpect": "-3",
+      "explanation": "Declared payload length must fit inside the buffer.",
+      "codeFile": "cases/visible/reject_truncated_payload.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "null input",
+      "displayInput": "frame=NULL",
+      "displayExpect": "-1",
+      "explanation": "Validate pointers before dereferencing.",
+      "codeFile": "cases/hidden/null_input.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "large big endian length",
+      "displayInput": "length=258",
+      "displayExpect": "258",
+      "explanation": "Catches little-endian field interpretation.",
+      "codeFile": "cases/hidden/large_big_endian_length.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "header too short",
+      "displayInput": "len < 3",
+      "displayExpect": "-1",
+      "explanation": "Header access must be guarded.",
+      "codeFile": "cases/hidden/header_too_short.c",
+      "weight": 1,
+      "sortOrder": 130
+    }
+  ]
+}

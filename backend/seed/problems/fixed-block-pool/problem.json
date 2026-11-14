@@ -1,0 +1,88 @@
+{
+  "slug": "fixed-block-pool",
+  "title": "Fixed Block Memory Pool",
+  "difficulty": "medium",
+  "category": "Embedded C",
+  "problemType": "memory-management",
+  "shortDescription": "Allocate and free fixed-size blocks without dynamic memory.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 35,
+    "focusAreas": ["memory-management", "constraints", "pointers"],
+    "source": "seed"
+  },
+  "tags": ["memory", "pool", "pointers", "constraints"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Track block ownership with fixed metadata; do not call malloc/free."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "fresh pool",
+      "displayInput": "init",
+      "displayExpect": "all blocks available",
+      "explanation": "Initialization resets every block.",
+      "codeFile": "cases/visible/fresh_pool.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "allocate all blocks",
+      "displayInput": "alloc four blocks",
+      "displayExpect": "four non-null unique pointers",
+      "explanation": "Each allocation consumes one block.",
+      "codeFile": "cases/visible/allocate_all_blocks.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "free and reuse",
+      "displayInput": "free block 1 then alloc",
+      "displayExpect": "same block reused",
+      "explanation": "Freed blocks should become available.",
+      "codeFile": "cases/visible/free_and_reuse.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "out of blocks",
+      "displayInput": "fifth allocation",
+      "displayExpect": "NULL",
+      "explanation": "The pool has fixed capacity.",
+      "codeFile": "cases/hidden/out_of_blocks.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "invalid free ignored",
+      "displayInput": "free stack pointer and misaligned pool pointer",
+      "displayExpect": "available count unchanged",
+      "explanation": "Only exact block starts from this pool can be freed.",
+      "codeFile": "cases/hidden/invalid_free_ignored.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "double free safe",
+      "displayInput": "free same block twice",
+      "displayExpect": "available count not over-incremented",
+      "explanation": "Double free must not corrupt pool state.",
+      "codeFile": "cases/hidden/double_free_safe.c",
+      "weight": 1,
+      "sortOrder": 130
+    }
+  ]
+}

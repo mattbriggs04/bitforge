@@ -1,0 +1,79 @@
+{
+  "slug": "debug-saturating-counter",
+  "title": "Debug Saturating Counter",
+  "difficulty": "easy",
+  "category": "Debugging",
+  "problemType": "bug-fix",
+  "shortDescription": "Fix off-by-one and underflow bugs in an 8-bit counter API.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 15,
+    "focusAreas": ["debugging", "data-types", "integer-underflow"],
+    "source": "seed"
+  },
+  "tags": ["debugging", "data-types", "underflow", "state"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "The starter is intentionally wrong. Add printf calls if the state transitions are unclear."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "starts at zero",
+      "displayInput": "reset",
+      "displayExpect": "count=0",
+      "explanation": "Reset should clear static state.",
+      "codeFile": "cases/visible/starts_at_zero.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "increment to max",
+      "displayInput": "max=3, four increments",
+      "displayExpect": "count stays 3",
+      "explanation": "Counter saturates at configured max.",
+      "codeFile": "cases/visible/increment_to_max.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "decrement at zero",
+      "displayInput": "decrement empty counter",
+      "displayExpect": "count stays 0",
+      "explanation": "Unsigned counters must not underflow.",
+      "codeFile": "cases/visible/decrement_at_zero.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "reset changes max",
+      "displayInput": "reset max=2 then max=5",
+      "displayExpect": "new max is used",
+      "explanation": "Reset should update both count and max.",
+      "codeFile": "cases/hidden/reset_changes_max.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "mixed transitions",
+      "displayInput": "inc inc dec inc",
+      "displayExpect": "count=2",
+      "explanation": "State should remain consistent across mixed operations.",
+      "codeFile": "cases/hidden/mixed_transitions.c",
+      "weight": 1,
+      "sortOrder": 120
+    }
+  ]
+}

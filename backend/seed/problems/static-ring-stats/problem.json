@@ -1,0 +1,79 @@
+{
+  "slug": "static-ring-stats",
+  "title": "Track Static Sensor Stats",
+  "difficulty": "medium",
+  "category": "Embedded C",
+  "problemType": "stateful-api",
+  "shortDescription": "Maintain rolling sensor statistics with static state and bounded history.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 25,
+    "focusAreas": ["static", "state", "integer-widths"],
+    "source": "seed"
+  },
+  "tags": ["static", "state", "ring-buffer", "data-types"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Keep all storage internal; callers should not allocate a context object."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "empty after reset",
+      "displayInput": "reset",
+      "displayExpect": "count=0, min/max/avg=0",
+      "explanation": "Reset clears all static state.",
+      "codeFile": "cases/visible/empty_after_reset.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "three samples",
+      "displayInput": "10, 30, 20",
+      "displayExpect": "min=10, max=30, avg=20",
+      "explanation": "Basic stats over fewer than 8 samples.",
+      "codeFile": "cases/visible/three_samples.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "rolling window",
+      "displayInput": "1..9",
+      "displayExpect": "window keeps 2..9",
+      "explanation": "Only the last 8 samples count.",
+      "codeFile": "cases/visible/rolling_window.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "reset between runs",
+      "displayInput": "record, reset, record",
+      "displayExpect": "old samples removed",
+      "explanation": "Static state must be resettable.",
+      "codeFile": "cases/hidden/reset_between_runs.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "large values",
+      "displayInput": "60000, 65535, 65535",
+      "displayExpect": "average does not overflow 16-bit math",
+      "explanation": "Accumulator should be wider than sample type.",
+      "codeFile": "cases/hidden/large_values.c",
+      "weight": 1,
+      "sortOrder": 120
+    }
+  ]
+}

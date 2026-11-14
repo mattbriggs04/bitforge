@@ -7,6 +7,7 @@ export type ProblemSummary = {
   problemType: string;
   shortDescription: string;
   tags: string[];
+  completed?: boolean;
 };
 
 export type ProblemSample = {
@@ -31,13 +32,20 @@ export type ProblemAsset = {
   metadata: Record<string, unknown>;
 };
 
+export type ProblemMetadata = Record<string, unknown> & {
+  solution?: unknown;
+  solutionMarkdown?: string;
+  solutionCode?: string;
+  solutionLanguage?: string;
+};
+
 export type ProblemDetail = ProblemSummary & {
   statementMarkdown: string;
   constraintsMarkdown: string;
   samples: ProblemSample[];
   languageTemplates: LanguageTemplate[];
   assets: ProblemAsset[];
-  metadata: Record<string, unknown>;
+  metadata: ProblemMetadata;
 };
 
 export type SubmissionCaseResult = {
@@ -79,27 +87,4 @@ export type Submission = {
 
 export type APIError = {
   error: string;
-};
-
-export type CompetitionRoomMember = {
-  userId: string;
-  handle: string;
-  isHost: boolean;
-  joinedAt: string;
-};
-
-export type CompetitionRoom = {
-  id: string;
-  code: string;
-  hostUserId: string;
-  hostHandle: string;
-  name: string;
-  mode: "time_based" | "questions_complete" | "code_golf" | string;
-  questionCount: number;
-  difficultyPolicy: "easy" | "medium" | "hard" | "random" | "progressive" | string;
-  status: "open" | "active" | "completed" | "closed" | string;
-  metadata: Record<string, unknown>;
-  createdAt: string;
-  updatedAt: string;
-  members: CompetitionRoomMember[];
 };

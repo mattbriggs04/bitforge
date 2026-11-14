@@ -11,6 +11,7 @@ type ProblemSummary struct {
 	ProblemType      string   `json:"problemType"`
 	ShortDescription string   `json:"shortDescription"`
 	Tags             []string `json:"tags"`
+	Completed        bool     `json:"completed"`
 }
 
 type ProblemDetail struct {
@@ -68,60 +69,27 @@ type ProblemFilter struct {
 	Tag        string
 }
 
-type CompetitionRoomMember struct {
-	UserID   string    `json:"userId"`
-	Handle   string    `json:"handle"`
-	IsHost   bool      `json:"isHost"`
-	JoinedAt time.Time `json:"joinedAt"`
-}
-
-type CompetitionRoom struct {
-	ID               string                  `json:"id"`
-	Code             string                  `json:"code"`
-	HostUserID       string                  `json:"hostUserId"`
-	HostHandle       string                  `json:"hostHandle"`
-	Name             string                  `json:"name"`
-	Mode             string                  `json:"mode"`
-	QuestionCount    int                     `json:"questionCount"`
-	DifficultyPolicy string                  `json:"difficultyPolicy"`
-	Status           string                  `json:"status"`
-	Metadata         map[string]any          `json:"metadata"`
-	CreatedAt        time.Time               `json:"createdAt"`
-	UpdatedAt        time.Time               `json:"updatedAt"`
-	Members          []CompetitionRoomMember `json:"members"`
-}
-
-type NewCompetitionRoom struct {
-	Code             string
-	HostUserID       string
-	Name             string
-	Mode             string
-	QuestionCount    int
-	DifficultyPolicy string
-	Status           string
-	Metadata         map[string]any
-}
-
 type Submission struct {
-	ID            string                 `json:"id"`
-	ProblemID     string                 `json:"problemId"`
-	ProblemSlug   string                 `json:"problemSlug"`
-	UserID        string                 `json:"userId"`
-	Language      string                 `json:"language"`
-	Mode          string                 `json:"mode"`
-	SourceCode    string                 `json:"sourceCode,omitempty"`
-	Status        string                 `json:"status"`
-	Verdict       string                 `json:"verdict"`
-	Score         int                    `json:"score"`
-	TotalTests    int                    `json:"totalTests"`
-	PassedTests   int                    `json:"passedTests"`
-	CompileOutput string                 `json:"compileOutput,omitempty"`
-	RuntimeOutput string                 `json:"runtimeOutput,omitempty"`
-	ErrorMessage  string                 `json:"errorMessage,omitempty"`
-	QueuedAt      time.Time              `json:"queuedAt"`
-	StartedAt     *time.Time             `json:"startedAt,omitempty"`
-	CompletedAt   *time.Time             `json:"completedAt,omitempty"`
-	Results       []SubmissionTestResult `json:"results"`
+	ID               string                 `json:"id"`
+	ProblemVersionID string                 `json:"problemVersionId,omitempty"`
+	ProblemID        string                 `json:"problemId"`
+	ProblemSlug      string                 `json:"problemSlug"`
+	UserID           string                 `json:"userId"`
+	Language         string                 `json:"language"`
+	Mode             string                 `json:"mode"`
+	SourceCode       string                 `json:"sourceCode,omitempty"`
+	Status           string                 `json:"status"`
+	Verdict          string                 `json:"verdict"`
+	Score            int                    `json:"score"`
+	TotalTests       int                    `json:"totalTests"`
+	PassedTests      int                    `json:"passedTests"`
+	CompileOutput    string                 `json:"compileOutput,omitempty"`
+	RuntimeOutput    string                 `json:"runtimeOutput,omitempty"`
+	ErrorMessage     string                 `json:"errorMessage,omitempty"`
+	QueuedAt         time.Time              `json:"queuedAt"`
+	StartedAt        *time.Time             `json:"startedAt,omitempty"`
+	CompletedAt      *time.Time             `json:"completedAt,omitempty"`
+	Results          []SubmissionTestResult `json:"results"`
 }
 
 type SubmissionTestResult struct {

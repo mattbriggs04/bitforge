@@ -1,0 +1,5 @@
+- No dynamic allocation.
+- Do not busy-wait; implement a single-attempt `try_lock`.
+- Use the provided atomic compare-and-swap hook for acquisition.
+- Store lock state in the provided `spinlock_t`.
+- Keep owner state consistent when acquisition fails.

@@ -1,0 +1,4 @@
+- Use integer masks and shifts.
+- Do not use C bitfield structs.
+- Do not allocate memory.
+- `unpack_command` must sign-extend the 12-bit setpoint.

@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"strings"
@@ -11,23 +12,26 @@ import (
 )
 
 type Server struct {
-	problemService     *service.ProblemService
-	submissionService  *service.SubmissionService
-	competitionService *service.CompetitionService
-	defaultUserHandle  string
+	problemService    *service.ProblemService
+	submissionService *service.SubmissionService
+	defaultUserHandle string
+	devResetEnabled   bool
+	resetDatabase     func(context.Context) error
 }
 
 func NewServer(
 	problemService *service.ProblemService,
 	submissionService *service.SubmissionService,
-	competitionService *service.CompetitionService,
 	defaultUserHandle string,
+	devResetEnabled bool,
+	resetDatabase func(context.Context) error,
 ) *Server {
 	return &Server{
-		problemService:     problemService,
-		submissionService:  submissionService,
-		competitionService: competitionService,
-		defaultUserHandle:  defaultUserHandle,
+		problemService:    problemService,
+		submissionService: submissionService,
+		defaultUserHandle: defaultUserHandle,
+		devResetEnabled:   devResetEnabled,
+		resetDatabase:     resetDatabase,
 	}
 }
 
@@ -37,16 +41,25 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/v1/health", s.handleHealth)
 	mux.HandleFunc("GET /api/v1/problems", s.handleListProblems)
 	mux.HandleFunc("GET /api/v1/problems/{slug}", s.handleGetProblem)
+	mux.HandleFunc("GET /api/v1/problems/{slug}/explanation", s.handleExplanation)
 	mux.HandleFunc("POST /api/v1/submissions", s.handleCreateSubmission)
 	mux.HandleFunc("GET /api/v1/submissions/{id}", s.handleGetSubmission)
-	mux.HandleFunc("GET /api/v1/competitions/rooms", s.handleListCompetitionRooms)
-	mux.HandleFunc("POST /api/v1/competitions/rooms", s.handleCreateCompetitionRoom)
-	mux.HandleFunc("POST /api/v1/competitions/rooms/join", s.handleJoinCompetitionRoom)
-	mux.HandleFunc("GET /api/v1/competitions/rooms/{code}", s.handleGetCompetitionRoom)
-	mux.HandleFunc("DELETE /api/v1/competitions/rooms/{code}", s.handleDeleteCompetitionRoom)
-	mux.HandleFunc("POST /api/v1/competitions/rooms/{code}/delete", s.handleDeleteCompetitionRoom)
+	mux.HandleFunc("POST /api/v1/dev/reset", s.handleDevReset)
 
 	return s.withMiddleware(mux)
+}
+
+func (s *Server) handleDevReset(w http.ResponseWriter, r *http.Request) {
+	if !s.devResetEnabled || s.resetDatabase == nil {
+		writeError(w, http.StatusNotFound, "not found")
+		return
+	}
+	if err := s.resetDatabase(r.Context()); err != nil {
+		log.Printf("dev reset error: %v", err)
+		writeError(w, http.StatusInternalServerError, "failed to reset database")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"status": "reset"})
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +83,7 @@ func (s *Server) handleListProblems(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "failed to list problems")
 		return
 	}
+	s.annotateCompletion(r.Context(), r, items)
 
 	writeJSON(w, http.StatusOK, map[string]any{"items": items})
 }
@@ -91,8 +105,30 @@ func (s *Server) handleGetProblem(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "problem not found")
 		return
 	}
+	completed, err := s.completedProblemIDs(r.Context(), r)
+	if err == nil {
+		problem.Completed = completed[problem.ID]
+	} else {
+		log.Printf("load problem completion error: %v", err)
+	}
 
 	writeJSON(w, http.StatusOK, problem)
+}
+
+func (s *Server) annotateCompletion(ctx context.Context, r *http.Request, items []model.ProblemSummary) {
+	completed, err := s.completedProblemIDs(ctx, r)
+	if err != nil {
+		log.Printf("load problem completion error: %v", err)
+		return
+	}
+	for i := range items {
+		items[i].Completed = completed[items[i].ID]
+	}
+}
+
+func (s *Server) completedProblemIDs(ctx context.Context, r *http.Request) (map[string]bool, error) {
+	userHandle, userKey := s.identityFromRequest(r)
+	return s.submissionService.CompletedProblemIDs(ctx, userHandle, userKey)
 }
 
 type createSubmissionRequest struct {
@@ -103,6 +139,7 @@ type createSubmissionRequest struct {
 }
 
 func (s *Server) handleCreateSubmission(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 400000)
 	var req createSubmissionRequest
 	if err := decodeJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid JSON payload")
@@ -150,139 +187,6 @@ func (s *Server) handleGetSubmission(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, submission)
-}
-
-type createCompetitionRoomRequest struct {
-	Name             string         `json:"name"`
-	Mode             string         `json:"mode"`
-	QuestionCount    int            `json:"questionCount"`
-	DifficultyPolicy string         `json:"difficultyPolicy"`
-	Metadata         map[string]any `json:"metadata"`
-}
-
-type joinCompetitionRoomRequest struct {
-	Code string `json:"code"`
-}
-
-func (s *Server) handleListCompetitionRooms(w http.ResponseWriter, r *http.Request) {
-	userHandle, userKey := s.identityFromRequest(r)
-
-	rooms, err := s.competitionService.ListRoomsForUser(r.Context(), userKey, userHandle)
-	if err != nil {
-		if s.writeServiceError(w, err) {
-			return
-		}
-		log.Printf("list competition rooms error: %v", err)
-		writeError(w, http.StatusInternalServerError, "failed to list competition rooms")
-		return
-	}
-
-	writeJSON(w, http.StatusOK, map[string]any{"items": rooms})
-}
-
-func (s *Server) handleCreateCompetitionRoom(w http.ResponseWriter, r *http.Request) {
-	var req createCompetitionRoomRequest
-	if err := decodeJSON(r, &req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid JSON payload")
-		return
-	}
-
-	userHandle, userKey := s.identityFromRequest(r)
-
-	room, err := s.competitionService.CreateRoom(r.Context(), service.CreateCompetitionRoomInput{
-		UserHandle:       userHandle,
-		UserKey:          userKey,
-		Name:             req.Name,
-		Mode:             req.Mode,
-		QuestionCount:    req.QuestionCount,
-		DifficultyPolicy: req.DifficultyPolicy,
-		Metadata:         req.Metadata,
-	})
-	if err != nil {
-		if s.writeServiceError(w, err) {
-			return
-		}
-		log.Printf("create competition room error: %v", err)
-		writeError(w, http.StatusInternalServerError, "failed to create competition room")
-		return
-	}
-
-	writeJSON(w, http.StatusCreated, room)
-}
-
-func (s *Server) handleJoinCompetitionRoom(w http.ResponseWriter, r *http.Request) {
-	var req joinCompetitionRoomRequest
-	if err := decodeJSON(r, &req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid JSON payload")
-		return
-	}
-
-	userHandle, userKey := s.identityFromRequest(r)
-
-	room, err := s.competitionService.JoinRoom(r.Context(), service.JoinCompetitionRoomInput{
-		UserHandle: userHandle,
-		UserKey:    userKey,
-		Code:       req.Code,
-	})
-	if err != nil {
-		if s.writeServiceError(w, err) {
-			return
-		}
-		log.Printf("join competition room error: %v", err)
-		writeError(w, http.StatusInternalServerError, "failed to join competition room")
-		return
-	}
-
-	writeJSON(w, http.StatusOK, room)
-}
-
-func (s *Server) handleGetCompetitionRoom(w http.ResponseWriter, r *http.Request) {
-	code := strings.TrimSpace(r.PathValue("code"))
-	if code == "" {
-		writeError(w, http.StatusBadRequest, "room code is required")
-		return
-	}
-
-	room, err := s.competitionService.GetRoomByCode(r.Context(), code)
-	if err != nil {
-		if s.writeServiceError(w, err) {
-			return
-		}
-		log.Printf("get competition room error: %v", err)
-		writeError(w, http.StatusInternalServerError, "failed to load competition room")
-		return
-	}
-	if room == nil {
-		writeError(w, http.StatusNotFound, "room not found")
-		return
-	}
-
-	writeJSON(w, http.StatusOK, room)
-}
-
-func (s *Server) handleDeleteCompetitionRoom(w http.ResponseWriter, r *http.Request) {
-	code := strings.TrimSpace(r.PathValue("code"))
-	if code == "" {
-		writeError(w, http.StatusBadRequest, "room code is required")
-		return
-	}
-
-	userHandle, userKey := s.identityFromRequest(r)
-
-	if err := s.competitionService.DeleteRoom(r.Context(), service.DeleteCompetitionRoomInput{
-		UserHandle: userHandle,
-		UserKey:    userKey,
-		Code:       code,
-	}); err != nil {
-		if s.writeServiceError(w, err) {
-			return
-		}
-		log.Printf("delete competition room error: %v", err)
-		writeError(w, http.StatusInternalServerError, "failed to delete competition room")
-		return
-	}
-
-	writeJSON(w, http.StatusOK, map[string]any{"status": "deleted"})
 }
 
 func (s *Server) writeServiceError(w http.ResponseWriter, err error) bool {
@@ -337,4 +241,16 @@ type statusRecorder struct {
 func (r *statusRecorder) WriteHeader(status int) {
 	r.status = status
 	r.ResponseWriter.WriteHeader(status)
+}
+
+func (s *Server) handleExplanation(w http.ResponseWriter, r *http.Request) {
+	handle, key := s.identityFromRequest(r)
+	text, err := s.submissionService.Explanation(r.Context(), r.PathValue("slug"), r.URL.Query().Get("submissionId"), key, handle)
+	if err != nil {
+		if !s.writeServiceError(w, err) {
+			writeError(w, 500, "could not load explanation")
+		}
+		return
+	}
+	writeJSON(w, 200, map[string]string{"explanation": text})
 }

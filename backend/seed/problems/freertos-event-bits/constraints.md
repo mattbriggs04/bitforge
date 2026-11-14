@@ -1,0 +1,4 @@
+- Store state in the provided struct.
+- No dynamic allocation.
+- Mask off reserved bits `24..31`.
+- A zero wait mask always fails.

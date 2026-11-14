@@ -1,0 +1,97 @@
+{
+  "slug": "bit-error-window",
+  "title": "Bit Error Window",
+  "difficulty": "hard",
+  "category": "Embedded C",
+  "problemType": "bit-manipulation",
+  "shortDescription": "Find the worst 8-bit error window between expected and observed samples.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 35,
+    "focusAreas": ["xor", "popcount", "sliding-window"],
+    "source": "seed"
+  },
+  "tags": ["bitwise", "popcount", "xor", "telemetry"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Use XOR to identify differing bits, then scan each 8-bit window."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "no errors",
+      "displayInput": "expected equals observed",
+      "displayExpect": "total=0, window_start=0, window_errors=0",
+      "explanation": "Identical words have no bit errors.",
+      "codeFile": "cases/visible/no_errors.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "single byte burst",
+      "displayInput": "low byte differs in all bits",
+      "displayExpect": "window_start=0, window_errors=8",
+      "explanation": "The first byte is the worst window.",
+      "codeFile": "cases/visible/single_byte_burst.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "higher window",
+      "displayInput": "bits 12..19 differ",
+      "displayExpect": "window_start=12",
+      "explanation": "Worst window is not necessarily byte-aligned.",
+      "codeFile": "cases/visible/higher_window.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "tie chooses lowest",
+      "displayInput": "two windows with equal error count",
+      "displayExpect": "lowest start index wins",
+      "explanation": "Tie-breaking must be deterministic.",
+      "codeFile": "cases/hidden/tie_chooses_lowest.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "all bits differ",
+      "displayInput": "expected=0 observed=0xffffffff",
+      "displayExpect": "total=32, any 8-bit window has 8 errors, start=0",
+      "explanation": "Full-width popcount and tie behavior.",
+      "codeFile": "cases/hidden/all_bits_differ.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "top window",
+      "displayInput": "bits 24..31 differ",
+      "displayExpect": "window_start=24",
+      "explanation": "The highest legal 8-bit window must be scanned.",
+      "codeFile": "cases/hidden/top_window.c",
+      "weight": 1,
+      "sortOrder": 130
+    },
+    {
+      "name": "alternating pattern",
+      "displayInput": "0xaaaaaaaa vs 0x55555555",
+      "displayExpect": "total=32, window_errors=8",
+      "explanation": "Every bit differs.",
+      "codeFile": "cases/hidden/alternating_pattern.c",
+      "weight": 1,
+      "sortOrder": 140
+    }
+  ]
+}

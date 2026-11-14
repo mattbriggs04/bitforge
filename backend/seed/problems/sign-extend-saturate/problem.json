@@ -1,0 +1,88 @@
+{
+  "slug": "sign-extend-saturate",
+  "title": "Sign Extend Sensor Values",
+  "difficulty": "easy",
+  "category": "Embedded C",
+  "problemType": "integer-conversion",
+  "shortDescription": "Sign-extend packed ADC values and implement saturating 16-bit addition.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 20,
+    "focusAreas": ["data-types", "integer-promotion", "bitwise"],
+    "source": "seed"
+  },
+  "tags": ["data-types", "signedness", "bitwise", "saturation"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Use fixed-width types and avoid implementation-defined overflow."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "positive 12 bit",
+      "displayInput": "value=0x07FF, bits=12",
+      "displayExpect": "2047",
+      "explanation": "Positive values should remain positive.",
+      "codeFile": "cases/visible/positive_12_bit.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "negative 12 bit",
+      "displayInput": "value=0x0800, bits=12",
+      "displayExpect": "-2048",
+      "explanation": "The top bit is the sign bit.",
+      "codeFile": "cases/visible/negative_12_bit.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "saturating add high",
+      "displayInput": "30000 + 10000",
+      "displayExpect": "INT16_MAX",
+      "explanation": "Overflow clamps high.",
+      "codeFile": "cases/visible/saturating_high.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "negative 8 bit",
+      "displayInput": "value=0x80, bits=8",
+      "displayExpect": "-128",
+      "explanation": "Works for widths other than 12.",
+      "codeFile": "cases/hidden/negative_8_bit.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "saturating add low",
+      "displayInput": "-30000 + -10000",
+      "displayExpect": "INT16_MIN",
+      "explanation": "Overflow clamps low.",
+      "codeFile": "cases/hidden/saturating_low.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "no saturation",
+      "displayInput": "1234 + -234",
+      "displayExpect": "1000",
+      "explanation": "Normal sums should not clamp.",
+      "codeFile": "cases/hidden/no_saturation.c",
+      "weight": 1,
+      "sortOrder": 130
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "slug": "freertos-ready-scheduler",
+  "title": "FreeRTOS-Style Ready Scheduler",
+  "difficulty": "hard",
+  "category": "RTOS",
+  "problemType": "rtos-simulation",
+  "shortDescription": "Implement a tiny priority scheduler with ready bits and tick-based delays.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 40,
+    "focusAreas": ["rtos", "scheduling", "bitwise", "state-machines"],
+    "source": "seed"
+  },
+  "tags": ["freertos", "rtos", "scheduler", "bitwise", "state"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Model task state explicitly; the harness exercises tick and ready transitions."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "highest priority wins",
+      "displayInput": "tasks: id1 prio1, id2 prio3, id3 prio2",
+      "displayExpect": "schedule returns id2",
+      "explanation": "Higher numeric priority runs first.",
+      "codeFile": "cases/visible/highest_priority_wins.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "tie breaks by task id",
+      "displayInput": "two ready tasks at same priority",
+      "displayExpect": "lower id runs first",
+      "explanation": "Deterministic tie-breaker for the simulator.",
+      "codeFile": "cases/visible/tie_breaks_by_task_id.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "delay blocks task",
+      "displayInput": "delay highest priority task by 2 ticks",
+      "displayExpect": "lower priority runs until delay expires",
+      "explanation": "Blocked tasks are not schedulable.",
+      "codeFile": "cases/visible/delay_blocks_task.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "ready clear",
+      "displayInput": "set ready false",
+      "displayExpect": "task is skipped",
+      "explanation": "Ready state is independently controllable.",
+      "codeFile": "cases/hidden/ready_clear.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "invalid create",
+      "displayInput": "duplicate id and out-of-range id",
+      "displayExpect": "-1",
+      "explanation": "Validate task table operations.",
+      "codeFile": "cases/hidden/invalid_create.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "multiple delays expire",
+      "displayInput": "two delayed tasks with different delays",
+      "displayExpect": "highest unblocked priority selected each tick",
+      "explanation": "Tick handling must update all blocked tasks.",
+      "codeFile": "cases/hidden/multiple_delays_expire.c",
+      "weight": 1,
+      "sortOrder": 130
+    }
+  ]
+}

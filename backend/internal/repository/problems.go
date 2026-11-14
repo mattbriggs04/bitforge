@@ -23,9 +23,9 @@ func (r *ProblemsRepository) ListPublished(ctx context.Context, filter model.Pro
 	where := []string{"is_published = TRUE"}
 
 	if filter.Query != "" {
-		args = append(args, "%"+filter.Query+"%")
+		args = append(args, "%"+strings.ToLower(filter.Query)+"%")
 		idx := len(args)
-		where = append(where, fmt.Sprintf("(title ILIKE $%d OR short_description ILIKE $%d OR statement_md ILIKE $%d)", idx, idx, idx))
+		where = append(where, fmt.Sprintf("(lower(title) LIKE $%d OR lower(short_description) LIKE $%d OR lower(statement_md) LIKE $%d)", idx, idx, idx))
 	}
 	if filter.Difficulty != "" {
 		args = append(args, strings.ToLower(filter.Difficulty))
@@ -369,7 +369,7 @@ func (r *ProblemsRepository) getTagsForProblems(ctx context.Context, problemIDs 
 	}
 
 	query := `
-		SELECT problem_id::text, tag
+		SELECT problem_id, tag
 		FROM problem_tags
 		WHERE problem_id IN (` + strings.Join(placeholders, ", ") + `)
 		ORDER BY tag ASC

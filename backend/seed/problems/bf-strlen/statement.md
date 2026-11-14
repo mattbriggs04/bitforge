@@ -1,4 +1,4 @@
-Implement `size_t bf_strlen(const char *s)`.
+Implement `size_t strlen(const char *s)`.
 
 Return the number of bytes in `s` before the first null terminator (`'\0'`).
 

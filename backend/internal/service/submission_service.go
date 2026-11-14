@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/mattbriggs04/bitforge/backend/internal/model"
-	"github.com/mattbriggs04/bitforge/backend/internal/queue"
 	"github.com/mattbriggs04/bitforge/backend/internal/repository"
 )
 
@@ -15,7 +14,6 @@ type SubmissionService struct {
 	problems          *repository.ProblemsRepository
 	submissions       *repository.SubmissionsRepository
 	users             *repository.UsersRepository
-	submissionQueue   queue.SubmissionQueue
 	defaultUserHandle string
 }
 
@@ -37,14 +35,12 @@ func NewSubmissionService(
 	problems *repository.ProblemsRepository,
 	submissions *repository.SubmissionsRepository,
 	users *repository.UsersRepository,
-	submissionQueue queue.SubmissionQueue,
 	defaultUserHandle string,
 ) *SubmissionService {
 	return &SubmissionService{
 		problems:          problems,
 		submissions:       submissions,
 		users:             users,
-		submissionQueue:   submissionQueue,
 		defaultUserHandle: defaultUserHandle,
 	}
 }
@@ -58,7 +54,7 @@ func (s *SubmissionService) Create(ctx context.Context, input CreateSubmissionIn
 	if language == "" {
 		language = "c"
 	}
-	if language != "c" {
+	if language != "c" && language != "cpp" && language != "python" && language != "rust" && language != "answer" {
 		return nil, newUnsupportedError(fmt.Sprintf("language %q is not supported yet", language))
 	}
 	mode := strings.ToLower(strings.TrimSpace(input.Mode))
@@ -84,11 +80,21 @@ func (s *SubmissionService) Create(ctx context.Context, input CreateSubmissionIn
 		return nil, newNotFoundError("problem not found")
 	}
 
+	if language == "answer" {
+		cfg, e := s.problems.GetJudgeConfig(ctx, problem.ID)
+		if e != nil {
+			return nil, e
+		}
+		if cfg == nil || cfg.Runner != "answer_v1" {
+			return nil, newUnsupportedError("problem requires source code")
+		}
+	}
+
 	starter, err := s.problems.GetStarterCode(ctx, problem.ID, language)
 	if err != nil {
 		return nil, fmt.Errorf("load language template: %w", err)
 	}
-	if starter == "" {
+	if starter == "" && language != "answer" {
 		return nil, newUnsupportedError(fmt.Sprintf("problem %q does not support language %q", problemSlug, language))
 	}
 
@@ -113,10 +119,6 @@ func (s *SubmissionService) Create(ctx context.Context, input CreateSubmissionIn
 	})
 	if err != nil {
 		return nil, fmt.Errorf("create submission: %w", err)
-	}
-
-	if err := s.submissionQueue.Enqueue(ctx, submissionID); err != nil {
-		return nil, fmt.Errorf("queue submission: %w", err)
 	}
 
 	return &CreateSubmissionOutput{SubmissionID: submissionID, Status: "queued"}, nil
@@ -146,4 +148,46 @@ func (s *SubmissionService) GetByID(ctx context.Context, submissionID string) (*
 	}
 
 	return submission, nil
+}
+
+func (s *SubmissionService) CompletedProblemIDs(ctx context.Context, userHandle, userKey string) (map[string]bool, error) {
+	handle := strings.TrimSpace(userHandle)
+	if handle == "" {
+		handle = s.defaultUserHandle
+	}
+	userID, err := s.users.EnsureIdentity(ctx, userKey, handle)
+	if err != nil {
+		if errors.Is(err, repository.ErrHandleTaken) {
+			return nil, newConflictError("username is already taken")
+		}
+		return nil, fmt.Errorf("ensure user: %w", err)
+	}
+	return s.submissions.AcceptedProblemIDs(ctx, userID)
+}
+
+// Explanation is returned only for a completed submit owned by this local identity.
+func (s *SubmissionService) Explanation(ctx context.Context, slug, id, key, handle string) (string, error) {
+	attempt, err := s.submissions.GetForRunner(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	if attempt == nil || attempt.ProblemSlug != slug {
+		return "", newNotFoundError("attempt not found")
+	}
+	if handle == "" {
+		handle = s.defaultUserHandle
+	}
+	userID, err := s.users.EnsureIdentity(ctx, key, handle)
+	if err != nil {
+		return "", err
+	}
+	if userID != attempt.UserID || attempt.Mode != "submit" || attempt.Status != "completed" {
+		return "", &AppError{Kind: ErrorKindForbidden, Message: "complete your own submission before revealing the explanation"}
+	}
+	snapshot, err := s.submissions.LoadSnapshot(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	text, _ := snapshot.Config.Config["explanation"].(string)
+	return text, nil
 }

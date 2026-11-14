@@ -1,0 +1,97 @@
+{
+  "slug": "bitmap-slot-allocator",
+  "title": "Bitmap Slot Allocator",
+  "difficulty": "medium",
+  "category": "Embedded C",
+  "problemType": "bit-manipulation",
+  "shortDescription": "Manage 32 fixed resources with a compact allocation bitmap.",
+  "statementFile": "statement.md",
+  "constraintsFile": "constraints.md",
+  "metadata": {
+    "estimatedMinutes": 25,
+    "focusAreas": ["bitmasks", "resource-allocation", "embedded-c"],
+    "source": "seed"
+  },
+  "tags": ["bitwise", "bitmap", "allocator", "embedded"],
+  "templates": [
+    {
+      "language": "c",
+      "starterCodeFile": "templates/c/starter.c",
+      "notes": "Use bit operations; the harness checks boundary handling and reuse."
+    }
+  ],
+  "assets": [],
+  "judge": {
+    "runner": "c_assert_harness_v1",
+    "config": {
+      "c_std": "c11"
+    }
+  },
+  "visibleCases": [
+    {
+      "name": "fresh allocator",
+      "displayInput": "init",
+      "displayExpect": "used=0, all slots free",
+      "explanation": "Initialization clears every allocation bit.",
+      "codeFile": "cases/visible/fresh_allocator.c",
+      "weight": 1,
+      "sortOrder": 10
+    },
+    {
+      "name": "allocates lowest slots",
+      "displayInput": "allocate three slots",
+      "displayExpect": "0, 1, 2",
+      "explanation": "First-fit should return the lowest free index.",
+      "codeFile": "cases/visible/allocates_lowest_slots.c",
+      "weight": 1,
+      "sortOrder": 20
+    },
+    {
+      "name": "free and reuse",
+      "displayInput": "allocate 0..2, free 1, allocate",
+      "displayExpect": "slot 1 reused",
+      "explanation": "Freeing clears the corresponding bitmap bit.",
+      "codeFile": "cases/visible/free_and_reuse.c",
+      "weight": 1,
+      "sortOrder": 30
+    }
+  ],
+  "hiddenCases": [
+    {
+      "name": "full allocator",
+      "displayInput": "allocate all slots plus one extra",
+      "displayExpect": "extra allocation returns -1",
+      "explanation": "No slot exists after all 32 bits are set.",
+      "codeFile": "cases/hidden/full_allocator.c",
+      "weight": 1,
+      "sortOrder": 110
+    },
+    {
+      "name": "invalid free ignored",
+      "displayInput": "free -1 and 32",
+      "displayExpect": "bitmap unchanged",
+      "explanation": "Out-of-range slots must not corrupt state.",
+      "codeFile": "cases/hidden/invalid_free_ignored.c",
+      "weight": 1,
+      "sortOrder": 120
+    },
+    {
+      "name": "double free safe",
+      "displayInput": "free the same allocated slot twice",
+      "displayExpect": "used count remains correct",
+      "explanation": "Clearing an already-clear bit should be harmless.",
+      "codeFile": "cases/hidden/double_free_safe.c",
+      "weight": 1,
+      "sortOrder": 130
+    },
+    {
+      "name": "highest slot",
+      "displayInput": "allocate through slot 31",
+      "displayExpect": "slot 31 is valid and tracked",
+      "explanation": "Catches signed-shift and off-by-one mistakes.",
+      "codeFile": "cases/hidden/highest_slot.c",
+      "weight": 1,
+      "sortOrder": 140
+    }
+  ]
+}

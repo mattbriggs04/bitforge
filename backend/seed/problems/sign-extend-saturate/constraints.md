@@ -1,0 +1,4 @@
+- `bits` is in the range `[1, 31]`.
+- Ignore bits above the selected width.
+- Do not rely on signed integer overflow.
+- Use fixed-width integer types.

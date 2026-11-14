@@ -1,0 +1,76 @@
+package authoring
+
+import (
+	"encoding/json"
+	"fmt"
+	"math/rand"
+	"slices"
+)
+
+type Config struct {
+	SchemaVersion int      `json:"schemaVersion"`
+	Seed          int64    `json:"seed"`
+	Category      string   `json:"category"`
+	Format        string   `json:"format"`
+	Language      string   `json:"language"`
+	Difficulty    string   `json:"difficulty"`
+	Level         string   `json:"level"`
+	Topic         string   `json:"topic"`
+	TargetMinutes int      `json:"targetMinutes"`
+	Avoid         []string `json:"avoid"`
+}
+
+func (c Config) Resolve() (Config, error) {
+	if c.SchemaVersion != 1 {
+		return c, fmt.Errorf("schemaVersion must be 1")
+	}
+	r := rand.New(rand.NewSource(c.Seed))
+	choose := func(value *string, options []string) error {
+		if *value == "random" {
+			*value = options[r.Intn(len(options))]
+		}
+		if !slices.Contains(options, *value) {
+			return fmt.Errorf("unsupported selection %q", *value)
+		}
+		return nil
+	}
+	if err := choose(&c.Category, []string{"embedded", "ai_ml", "computer_vision", "computer_architecture", "operating_systems"}); err != nil {
+		return c, err
+	}
+	if err := choose(&c.Format, []string{"coding", "single_choice", "multiple_select", "numeric"}); err != nil {
+		return c, err
+	}
+	if err := choose(&c.Language, []string{"c", "cpp", "python", "rust"}); err != nil {
+		return c, err
+	}
+	if err := choose(&c.Difficulty, []string{"easy", "medium", "hard"}); err != nil {
+		return c, err
+	}
+	if c.TargetMinutes < 1 || c.TargetMinutes > 180 {
+		return c, fmt.Errorf("targetMinutes must be 1..180")
+	}
+	return c, nil
+}
+func Prompt(c Config) (string, error) {
+	resolved, err := c.Resolve()
+	if err != nil {
+		return "", err
+	}
+	data, _ := json.MarshalIndent(resolved, "", "  ")
+	return fmt.Sprintf(`Create exactly one BitForge question using this resolved request:
+%s
+
+Read backend/internal/authoring/bundle.go for the strict JSON bundle contract and generation/examples/*.json for complete examples. Write a NEW draft JSON file under generation/drafts/; do not modify existing questions, the validator, worker, tests or publication code. Never place private artifacts in frontend/public.
+
+1. Define the specification, assumptions, units, learning objectives, and grading contract before solving. Match the requested category, format, topic, level, difficulty, time budget, language, and seed. Avoid the supplied topics/problems. Use an original problem with a precise unambiguous answer.
+2. Emit schemaVersion=1. Include provenance (agent/model if known; never invent it), explanation, and reviewNotes describing independent reasoning and limitations. Difficulty is easy/medium/hard; graduate level belongs in the requested content, not a new enum.
+3. Coding: full standalone stdin/stdout programs, not function snippets. Use only installed standard libraries or Python NumPy. Include a compiling starter in templates, one reference per advertised language, a DIFFERENT simpler independent verifier, and at least two distinct plausible compiling mutants. Comparators are exact (trimmed text), numeric (one finite number), or json (recursive numeric tolerance); specify any tolerances in the statement. No custom checker code is accepted.
+4. Include 2..20 hand-calculated anchor cases, with both public and private coverage. Provide a deterministic generator program: it reads the integer seed from stdin and prints ONLY a JSON array of 20..100 objects {"name":"unique-case-name","input":"stdin text"}. It generates inputs, never expected answers. Cover boundaries, invalid inputs only where the specification defines behavior, representative random inputs, and relevant invariants.
+5. Answer formats: no templates/references/generator/cases/mutants. Numeric answer is a finite numeric string with units specified in the statement. Choice options have stable IDs, text, and a rationale for EVERY option. Answer is an encoded JSON string ID for single_choice or encoded JSON array of IDs for multiple_select. Choice comparator kind is json. Provide an independent executable verifier whose stdout matches answer, based on a real calculation/model rather than simply printing the answer. Verify theoretical reasoning separately in reviewNotes; execution alone cannot prove conceptual truth.
+6. Keep solutions, correct option IDs, rationales, private tests, and verifier code out of public statements and templates. Reference and submitted programs run separately; do not put expected outputs or grader logic inside user programs.
+7. Run: cd backend && go run ./cmd/problems validate -bundle ../generation/drafts/<slug>.json
+Repair actual failures within two attempts. If Docker is unavailable or validation fails, leave a draft and report the failure. NEVER claim checks ran when they did not. Do not use host execution as a fallback.
+8. To publish, run: cd backend && go run ./cmd/problems import -bundle ../generation/drafts/<slug>.json
+Import reruns validation and freezes actual cases. Do not mark a draft published by editing a report. Return the bundle path and actual validation result.
+`, data), nil
+}

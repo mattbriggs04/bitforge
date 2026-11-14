@@ -1,0 +1,14 @@
+rtos_init();
+task_create(1, 1);
+task_create(2, 3);
+task_create(3, 5);
+task_delay(3, 3);
+task_delay(2, 1);
+int t0 = schedule_next();
+rtos_tick();
+int t1 = schedule_next();
+rtos_tick();
+int t2 = schedule_next();
+rtos_tick();
+int t3 = schedule_next();
+case_passed = t0 == 1 && t1 == 2 && t2 == 2 && t3 == 3;

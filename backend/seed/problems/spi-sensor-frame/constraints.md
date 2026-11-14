@@ -1,0 +1,5 @@
+- Return `-1` for null `rx` or `out`.
+- Return `-2` when `len < 5`.
+- Return `-3` for invalid sync.
+- Return `-4` for checksum mismatch.
+- Do not write `*out` unless the frame is valid.

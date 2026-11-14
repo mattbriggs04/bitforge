@@ -4,19 +4,19 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/mattbriggs04/bitforge/backend/internal/model"
+	"github.com/mattbriggs04/bitforge/backend/internal/sandbox"
 )
 
-type CAssertRunner struct{}
+type CAssertRunner struct{ Executor sandbox.Executor }
 
 func NewCAssertRunner() *CAssertRunner {
-	return &CAssertRunner{}
+	return &CAssertRunner{Executor: sandbox.NewDocker()}
 }
 
 func (r *CAssertRunner) Evaluate(ctx context.Context, req Request) (model.JudgeResult, error) {
@@ -29,68 +29,26 @@ func (r *CAssertRunner) Evaluate(ctx context.Context, req Request) (model.JudgeR
 		return model.JudgeResult{}, fmt.Errorf("build harness: %w", err)
 	}
 
-	workingDir := filepath.Join(os.TempDir(), "bitforge-judge", req.SubmissionID)
-	if err := os.MkdirAll(workingDir, 0o755); err != nil {
-		return model.JudgeResult{}, fmt.Errorf("create judge working directory: %w", err)
+	p, compile, err := r.Executor.Prepare(ctx, "c", harness, req.CompileTimeout)
+	if err != nil {
+		return model.JudgeResult{}, err
 	}
-	defer os.RemoveAll(workingDir)
-
-	sourcePath := filepath.Join(workingDir, "submission.c")
-	binaryPath := filepath.Join(workingDir, "submission.bin")
-	if err := os.WriteFile(sourcePath, []byte(harness), 0o600); err != nil {
-		return model.JudgeResult{}, fmt.Errorf("write harness source: %w", err)
+	if p == nil {
+		return model.JudgeResult{Status: "completed", Verdict: "compile_error", CompileOutput: truncateOutput(compile.Stdout + compile.Stderr), TotalTests: len(req.Cases), Results: defaultErrorResults(req.Cases, "compilation failed or exceeded limits")}, nil
 	}
-
-	compiler := req.Compiler
-	if compiler == "" {
-		compiler = "gcc"
+	defer p.Close()
+	out, err := p.Run(ctx, "", req.RunTimeout)
+	if err != nil {
+		return model.JudgeResult{}, err
 	}
-
-	std := configString(req.Config, "c_std", "c11")
-	compileArgs := []string{"-std=" + std, "-O2", "-pipe", sourcePath, "-o", binaryPath}
-	if extraFlags := configStringSlice(req.Config, "compiler_flags"); len(extraFlags) > 0 {
-		compileArgs = append(extraFlags, compileArgs...)
-	}
-
-	compileCtx, cancelCompile := context.WithTimeout(ctx, req.CompileTimeout)
-	defer cancelCompile()
-	compileCmd := exec.CommandContext(compileCtx, compiler, compileArgs...)
-	compileOutput, compileErr := compileCmd.CombinedOutput()
-	formattedCompileOutput := truncateOutput(formatCompileOutput(string(compileOutput), sourcePath, workingDir))
-	if compileCtx.Err() == context.DeadlineExceeded {
-		return model.JudgeResult{
-			Status:        "completed",
-			Verdict:       "compile_error",
-			ErrorMessage:  "compilation timed out",
-			CompileOutput: formattedCompileOutput,
-			Results:       defaultErrorResults(req.Cases, "compile step did not finish"),
-		}, nil
-	}
-	if compileErr != nil {
-		return model.JudgeResult{
-			Status:        "completed",
-			Verdict:       "compile_error",
-			CompileOutput: formattedCompileOutput,
-			Results:       defaultErrorResults(req.Cases, "compilation failed"),
-		}, nil
-	}
-
-	runCtx, cancelRun := context.WithTimeout(ctx, req.RunTimeout)
-	defer cancelRun()
-	runCmd := exec.CommandContext(runCtx, binaryPath)
-	runOutputBytes, runErr := runCmd.CombinedOutput()
-	runOutput := string(runOutputBytes)
+	runOutput := out.Stdout + out.Stderr
 	formattedRuntimeOutput := truncateOutput(formatRuntimeOutput(runOutput))
-
-	if runCtx.Err() == context.DeadlineExceeded {
-		return model.JudgeResult{
-			Status:        "completed",
-			Verdict:       "runtime_error",
-			RuntimeOutput: formattedRuntimeOutput,
-			ErrorMessage:  "execution timed out",
-			Results:       defaultErrorResults(req.Cases, "execution timed out"),
-			TotalTests:    len(req.Cases),
-		}, nil
+	var runErr error
+	if out.ExitCode != 0 {
+		runErr = fmt.Errorf("exit %d", out.ExitCode)
+	}
+	if out.TimedOut || out.Truncated {
+		return model.JudgeResult{Status: "completed", Verdict: "runtime_error", TotalTests: len(req.Cases), Results: defaultErrorResults(req.Cases, "execution exceeded limits")}, nil
 	}
 
 	parsed := parseHarnessOutput(runOutput, req.Cases)
@@ -125,6 +83,12 @@ func (r *CAssertRunner) Evaluate(ctx context.Context, req Request) (model.JudgeR
 		verdict = "wrong_answer"
 	}
 
+	for _, tc := range req.Cases {
+		if tc.IsHidden {
+			formattedRuntimeOutput = "Runtime output is available in Run Samples mode."
+			break
+		}
+	}
 	score := 0
 	if total > 0 {
 		score = int((float64(passed) / float64(total)) * 100)

@@ -1,0 +1,4 @@
+- Use internal static state.
+- `counter_reset` sets the count to `0` and updates the max.
+- Increment at max leaves the count unchanged.
+- Decrement at zero leaves the count unchanged.

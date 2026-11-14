@@ -1,247 +1,137 @@
 # BitForge
 
-BitForge is a systems-oriented interview practice platform focused on firmware, embedded C, low-level networking, and security engineering workflows.
+Daily interview and exam practice for embedded systems, AI/ML, computer vision, computer architecture, and operating systems.
 
-This MVP is intentionally C-first with architecture ready to add C++, Rust, and Python templates later.
+BitForge supports existing C function exercises plus validated generated questions: standalone C11, C++20, Python/NumPy and Rust programs, single choice, multiple select, and numerical answers. Language availability belongs to each problem; old C exercises are not automatically translated.
 
-## What Is Implemented
+## Run locally
 
-- Landing page with systems-focused product identity
-- Problem catalog with search/filter by difficulty/category/tag
-- Problem detail page with:
-  - statement
-  - constraints
-  - tags/metadata
-  - sample cases
-  - reference assets
-- In-browser C solve experience using Monaco editor
-- Submission workflow:
-  - `Run Samples` mode (visible tests)
-  - `Submit` mode (visible + hidden tests)
-- Async judge pipeline using Redis queue + Go worker
-- Friend competitions:
-  - create room with shareable code
-  - host-selected mode/question count/difficulty policy
-  - join room by code and view participants
-- Postgres-backed data model with migrations and seed data
-- Seeded systems problems:
-  - `bf-strlen`
-  - `bf-memcpy`
-  - `bf-memmove`
-  - `ring-buffer-int`
-  - `parse-ipv4-header`
-  - `debounce-button-isr`
+Prerequisites: Go 1.25+, Node/npm, and a running Docker daemon. No host compiler or LLM API key is required.
 
-## Stack
+```bash
+make sandbox-image
+npm --prefix frontend install
+npm run dev
+```
 
-- Frontend: Next.js (App Router) + TypeScript
-- Backend: Go (net/http + repository/service architecture)
-- Database: Postgres 16
-- Queue/coordination: Redis 7
-- Local orchestration: Docker Compose
+`make dev` starts the API, frontend and a bounded judge worker. Open http://localhost:3000. The API runs on port 8080. SQLite lives at `backend/bitforge.db`; startup migrates and loads the legacy seed catalog without deleting generated questions.
 
-## Monorepo Layout
+To run services separately, use `make api`, `make worker`, and `make frontend`. A submission remains queued while no worker is running.
+
+## Generate a new question with an agent
+
+1. Edit `generation/request.json`: choose category, format, language, difficulty, topic, level, and time budget. Use `random` for category/format/language/difficulty. Seed `0` selects a fresh seed on each invocation; a nonzero seed reproduces the selection. `avoid` supplies topics or questions to exclude.
+2. Run `make generation-prompt`. It writes the fully expanded request and instructions to `generation/next-question.txt`.
+3. Give that text to your coding agent working in this repository. The agent authors a draft JSON bundle, runs validation, repairs failures, and imports it only after validation succeeds. There is no dependency on a particular LLM provider and no paid API call hidden in this command.
+
+The agent contract is `backend/internal/authoring/bundle.go`. Complete examples live in `generation/examples/`. Each run requests exactly one question. The seed controls selection and generated inputs; it does not make LLM wording deterministic. Keep the actual bundle to reproduce the question.
+
+Manual validation and publication:
+
+```bash
+cd backend
+go run ./cmd/problems validate -bundle ../generation/drafts/my-question.json
+go run ./cmd/problems import -bundle ../generation/drafts/my-question.json
+```
+
+Import always reruns validation; a supplied report or publication flag cannot bypass it. Rejected content stays outside the catalog. Existing hand-authored slugs cannot be overwritten by generated imports. Imported generated content can be revised under its own slug; queued submissions retain their frozen grading version.
+
+### Try the examples
+
+From `backend/`:
+
+```bash
+go run ./cmd/problems import -bundle ../generation/examples/stable-log-sum-exp.json
+go run ./cmd/problems import -bundle ../generation/examples/adc-quantization-error.json
+go run ./cmd/problems import -bundle ../generation/examples/pthread-counter-interleaving.json
+```
+
+These cover a numerically stable ML reduction in all four languages, an embedded error-budget calculation, and a pthread interleaving question. Validation launches isolated processes for each test and language, so a coding import can take a minute or more. Example validation reports record actual checked cases and image IDs; they are evidence, not import credentials.
+
+### Validation contract
+
+Coding bundles contain:
+
+- A precise statement, constraints, objectives, compiling starters, and executable reference solutions for every advertised language.
+- A different independent verifier and 2–20 hand-derived anchor cases, including visible and hidden cases.
+- A deterministic input generator, supplied the recorded seed on stdin. It prints a JSON array of 20–100 uniquely named `{ "name": "...", "input": "..." }` objects.
+- At least two distinct compiling mutants representing plausible incorrect implementations. All must be rejected by the generated suite.
+
+The validator checks anchors against the independent implementation, freezes its expected outputs, compares every reference against those outputs, compiles starters, and challenges the suite with mutants. Ordinary submissions use the frozen cases and need no LLM or reference execution. Program outputs are checked in the trusted worker; programs cannot declare their own verdicts.
+
+Comparators are trimmed exact text, one finite number, or recursive JSON. Numeric/JSON tolerances use `abs(actual-expected) <= max(absolute, relative*abs(expected))`; zero tolerances preserve exact integers, including integers beyond float64 precision. Numerical units and tolerances must appear in the statement. Multiple-select answers are sets of stable option IDs, with duplicate selections rejected.
+
+Choice and numerical bundles include an executable independent calculation/model plus reasoning and option rationales. The validator verifies its output against the supplied answer. Conceptual truth and the quality of independent reasoning still need editorial judgment: agreement between programs is not a proof that an LLM-authored question is correct. No arbitrary generated checker code executes in the trusted worker.
+
+## Practice experience
+
+- The homepage selects an unfinished exercise and keeps that day's selection stable on the device.
+- Search/filter the catalog by category, difficulty, or tag.
+- Coding supports language selection, saved drafts per question/language/version, sample runs, submission, and per-case results.
+- Exam questions use radio buttons, checkboxes, or a numeric input. Explanations and option rationales are retrieved only after the user's completed submission, rather than embedded in the public question payload.
+- Existing legacy solution reveal panels remain available for hand-authored C questions.
+
+## Judge and persistence
 
 ```text
-.
-├── backend
-│   ├── cmd
-│   │   ├── api
-│   │   ├── worker
-│   │   ├── migrate
-│   │   └── seed
-│   ├── seed
-│   │   └── problems
-│   └── internal
-│       ├── config
-│       ├── db
-│       ├── httpapi
-│       ├── judge
-│       ├── migrations
-│       ├── model
-│       ├── queue
-│       ├── repository
-│       └── service
-├── frontend
-│   ├── app
-│   │   ├── api/backend/[...path]  # proxy route
-│   │   ├── problems
-│   │   └── page.tsx
-│   ├── components
-│   └── lib
-├── scripts
-│   └── new-problem.sh
-└── docker-compose.yml
+Next.js → Go API → SQLite submission + snapshot + job (one transaction)
+                           ↓
+                   bounded judge workers
+                           ↓
+                 disposable Docker containers
+                           ↓
+                 trusted output comparison
 ```
 
-## Data Model (Postgres)
+`problem_versions` stores content-addressed snapshots of the public specification, grader configuration and cases. Submissions reference a version; editing or reseeding live tests cannot change queued work. Pre-migration historical submissions have no reconstructible version and need resubmission if still queued.
 
-Core tables:
+Jobs use atomic claims, ten-minute leases, fenced lease tokens, at most three attempts, and delayed retries. Each job has an eight-minute worker deadline. API restarts do not lose work. A crashed worker's lease is reclaimed; a stale worker cannot finalize the new owner's job. `JUDGE_WORKERS` defaults to 2 and is capped at 8 per process.
 
-- `users`
-- `problems`
-- `problem_tags`
-- `problem_language_templates`
-- `problem_assets`
-- `problem_judge_configs`
-- `problem_test_cases`
-- `submissions`
-- `submission_test_results`
-- `competition_rooms`
-- `competition_room_members`
+SQLite is appropriate for local practice. This is the first implementation milestone; catalog pagination/facets, broader curriculum coverage, richer review scheduling, and a Postgres deployment path remain follow-up work.
 
-The schema is designed for richer systems content, not only plain stdin/stdout algorithm prompts. Problem assets, per-language templates, and JSON payload test cases support future labs (headers, blobs, multi-file assets, etc.).
+### Execution boundary
 
-## Adding New Problems
+Compilation and execution both run as an unprivileged user in a read-only container with no network, no host credentials or Docker socket, dropped capabilities, and explicit CPU/memory/process/file/output/time limits. Only submitted source and its compiled artifact are mounted read-only. Writable directories are bounded tmpfs mounts. Expected outputs and reference code are never mounted into a generated submission's container. Each case starts a fresh container.
 
-Problems are defined by file bundles in `backend/seed/problems/<slug>/`.
+A daemon-side timeout also terminates the container if the worker crashes. The worker removes containers after execution; Docker Desktop must remain running. There is no fallback to executing code on the host.
 
-1. Scaffold a new bundle:
-   - `./scripts/new-problem.sh <slug> "<Title>" "<Category>"`
-2. Edit the generated files:
-   - `statement.md`
-   - `constraints.md`
-   - `templates/c/starter.c`
-   - `cases/visible/*.c`
-   - `cases/hidden/*.c`
-   - `problem.json` metadata/tags/order
-3. Reseed:
-   - `make seed`
-4. Restart API/worker if they are already running and not in compose.
+Generated imports resolve `SANDBOX_IMAGE` to an immutable image ID and store it with the grader. Retain that local image to execute those problem versions. Rebuilding the image and reimporting creates a new execution environment. Image IDs also capture architecture; cross-platform workers need compatible images and explicit revalidation.
 
-See `backend/seed/problems/README.md` for full schema and conventions.
+The legacy `c_assert_harness_v1` runner now executes inside Docker, but still combines test snippets and submitted code and reads harness verdicts from stdout. It remains suitable for personal legacy practice, not adversarial grading. New generated coding content uses `stdio_v1` with an external comparator; exam questions use `answer_v1`.
 
-### Case Snippet Contract
+This remains a personal-use app with local header-based identity, not authenticated public hosting. For shared hosting, add real authentication/authorization, admission/rate limits, and a reviewed isolation deployment (optionally `SANDBOX_RUNTIME=runsc` on a configured Linux daemon). The trusted worker needs Docker access; the API does not.
 
-Runner `c_assert_harness_v1` expects each case snippet to set `case_passed`.
+## Existing hand-authored C problems
 
-Example:
-
-```c
-int got = solve();
-int expected = 42;
-case_passed = (got == expected);
-```
-
-The judge wraps user code plus these snippets into a generated harness and stores per-case outcomes in `submission_test_results`.
-
-### Runner Extensibility
-
-- Problem behavior is selected by `problem_judge_configs.runner`.
-- MVP uses one runner (`c_assert_harness_v1`), but runner dispatch can be extended for:
-  - register-level hardware simulation
-  - packet blob fixtures
-  - multi-file builds
-  - isolated sandbox executors
-
-## Submission Pipeline
-
-1. Frontend sends code to `POST /api/v1/submissions`
-2. Backend stores submission in Postgres (`queued`)
-3. Backend pushes submission ID to Redis list queue
-4. Worker pops queued submissions and marks them `running`
-5. Worker loads problem judge config + tests
-6. Worker compiles/runs C harness and persists verdict + per-case outcomes
-7. Frontend polls `GET /api/v1/submissions/{id}` for status/results
-
-### Hidden Tests
-
-- Hidden test definitions never leave the backend
-- `Run Samples` evaluates only visible sample tests
-- `Submit` evaluates visible + hidden tests
-
-## Local Development
-
-### Prerequisites
-
-- Docker + Docker Compose
-
-### Start everything
+Bundles remain under `backend/seed/problems/<slug>/`. Use:
 
 ```bash
-make up
+./scripts/new-problem.sh <slug> "<Title>" "<Category>"
+make seed
 ```
 
-Services:
+See `backend/seed/problems/README.md` for snippet contracts. Seeding loads these bundles into SQLite; it is independent of the generated-content validation/import path.
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8080
-- Postgres: localhost:5432
-- Redis: localhost:6379
-
-The backend container runs seed on startup (`cmd/seed`) before starting the API, so initial content is available automatically.
-
-### Stop
+## Verification
 
 ```bash
-make down
+npm test
+cd backend
+BITFORGE_SANDBOX_TEST=1 go test ./internal/sandbox -v
 ```
 
-## Useful Commands
+The ordinary test suite covers comparison semantics, schema validation, oracle disagreement, surviving mutants, snapshot preservation, lease fencing, and explanation privacy. Docker integration tests compile/run all four languages and check filesystem/network restrictions, output caps and timeout cleanup. They are opt-in to keep ordinary tests usable without Docker.
 
-```bash
-make backend        # run API locally (without docker)
-make worker         # run worker locally
-make migrate        # apply migrations
-make seed           # seed sample problems
-make backend-test   # go test ./...
-make frontend       # next dev
-make frontend-lint  # eslint
-```
+## Configuration and API
 
-## API Surface
+See `.env.example`. Main options: `DATABASE_URL`, `HTTP_PORT`, `DEFAULT_USER_HANDLE`, `JUDGE_WORKERS`, `COMPILE_TIMEOUT`, `RUN_TIMEOUT`, `SANDBOX_IMAGE`, optional `SANDBOX_RUNTIME`, and `BACKEND_API_URL`. Compilers are fixed inside the sandbox image. `APP_ENV=production` disables development reset.
 
-- `GET /health`
-- `GET /api/v1/health`
-- `GET /api/v1/problems`
-  - Query params: `q`, `difficulty`, `category`, `tag`
+- `GET /api/v1/problems` (`q`, `difficulty`, `category`, `tag`)
 - `GET /api/v1/problems/{slug}`
-- `POST /api/v1/submissions`
-  - Body: `{ problemSlug, language, mode, sourceCode }`
-  - `mode`: `run` or `submit`
+- `POST /api/v1/submissions`: `{ problemSlug, language, mode, sourceCode }`
 - `GET /api/v1/submissions/{id}`
-- `GET /api/v1/competitions/rooms`
-  - Uses `X-User-Handle` + `X-User-Key` headers to list rooms for a stable user identity
-- `POST /api/v1/competitions/rooms`
-  - Body: `{ name, mode, questionCount, difficultyPolicy, metadata? }`
-- `POST /api/v1/competitions/rooms/join`
-  - Body: `{ code }`
-- `GET /api/v1/competitions/rooms/{code}`
-- `DELETE /api/v1/competitions/rooms/{code}`
-  - Host-only room deletion
-- `POST /api/v1/competitions/rooms/{code}/delete`
-  - Host-only room deletion (fallback alias)
+- `GET /api/v1/problems/{slug}/explanation?submissionId=...`
+- `GET /health` and `GET /api/v1/health`
+- `POST /api/v1/dev/reset`: destructive development-only reset, including generated content
 
-### Identity Note
-
-Competition membership is tied to a stable client identity key (`X-User-Key`) with mutable username (`X-User-Handle`).
-This lets users rename their username without losing room membership.
-
-## Environment Variables
-
-See `.env.example` for defaults.
-
-Key values:
-
-- `DATABASE_URL`
-- `REDIS_ADDR`
-- `SUBMISSION_QUEUE`
-- `DEFAULT_USER_HANDLE`
-- `C_COMPILER`
-- `COMPILE_TIMEOUT`
-- `RUN_TIMEOUT`
-- `BACKEND_API_URL` (frontend server-side/proxy target)
-
-## MVP Judge Security Note
-
-The current judge executes compiled C directly inside the worker container for practical MVP speed. It is structured so you can replace the execution layer with a hardened sandbox (namespaces/seccomp/firecracker/isolated runners) without changing API contracts.
-
-## Future Ideas
-- Compete with friends
-    - Start a room that others can join
-    - Variety of modes: code golf, time based, number of problems completed * difficulty for scoring
-    - Ability to select time, difficulty, number of rounds
-- Highly optimized libc implementations
-    - Achieving speeds close to actual memcpy using SIMD, word-level, etc. (hard problems)
-- Debugging problems
-- RTOS problems (FreeRTOS, Zephyr, NuttX)
+`language` is `c`, `cpp`, `python`, `rust`, or `answer`. Coding `mode` is `run` (visible tests) or `submit` (all tests). The browser sends `X-User-Key` and `X-User-Handle` for stable local identity.

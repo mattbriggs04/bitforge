@@ -146,6 +146,10 @@ func (r *ProblemsRepository) GetPublishedBySlug(ctx context.Context, slug string
 		return nil, err
 	}
 	detail.Assets = assets
+	detail.Interviews, err = r.ListInterviews(ctx, detail.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	return &detail, nil
 }

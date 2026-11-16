@@ -47,3 +47,18 @@ This delivers the first generation/practice milestone. The catalog still needs p
 ## Workspace
 
 The session began with extensive uncommitted SQLite/UI/content changes and removed legacy deployment files. Preserve unrelated changes; do not reset the worktree. No commit was requested.
+
+
+## Mixed interviews (2026-11-15)
+
+- `005_interviews.sql` adds ordered many-to-many interview membership.
+- Manifest contract and confined file loader: `backend/internal/authoring/interview.go`.
+- CLI `validate-interview` / `import-interview` validates every member, then imports atomically.
+- `/interviews` lists collections; `/interviews/[slug]` shows question order, resume link and personal solved progress. Question pages retain interview navigation via `?interview=<slug>`.
+- First set: `generation/interviews/binary-classifiers/interview.json` (3 single-choice, 1 Python coding, ~45 min). Validation report is alongside it.
+- Questions retain independent grading. No separate timed interview attempts or aggregate exam scores are implemented.
+
+
+## Math rendering
+
+`frontend/components/markdown.tsx` centralizes remark-math + rehype-katex rendering. Use `$...$` inline and `$$` display blocks in problem prose, options (inline only), sample notes and explanations. KaTeX CSS/fonts are imported locally in the root layout. JSON requires escaped backslashes; generator instructions and README document this. Grader inputs, output fixtures and option answer IDs remain plain. The binary-classifier interview now demonstrates LaTeX formatting.

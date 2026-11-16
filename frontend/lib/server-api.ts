@@ -1,4 +1,4 @@
-import { ProblemDetail, ProblemSummary } from "@/lib/types";
+import { ProblemDetail, ProblemSummary, InterviewSummary, InterviewDetail } from "@/lib/types";
 
 const BACKEND_API_URL =
   process.env.BACKEND_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
@@ -73,4 +73,16 @@ export async function getProblemServer(slug: string): Promise<ProblemDetail | nu
   }
 
   return response.json() as Promise<ProblemDetail>;
+}
+
+export async function getInterviewsServer(): Promise<InterviewSummary[]> {
+  const payload = await backendFetch<{ items: InterviewSummary[] }>("/api/v1/interviews");
+  return payload.items;
+}
+
+export async function getInterviewServer(slug: string): Promise<InterviewDetail | null> {
+  const response = await fetchWithRetry(`${BACKEND_API_URL}/api/v1/interviews/${encodeURIComponent(slug)}`, { cache: "no-store" });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Could not load interview (${response.status})`);
+  return response.json() as Promise<InterviewDetail>;
 }

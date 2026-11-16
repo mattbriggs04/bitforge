@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -25,7 +26,7 @@ func main() {
 }
 func run() error {
 	if len(os.Args) < 2 {
-		return fmt.Errorf("usage: problems prompt -config request.json | validate/import -bundle draft.json")
+		return fmt.Errorf("usage: problems prompt -config request.json | validate/import -bundle draft.json | validate-interview/import-interview -bundle interview.json")
 	}
 	action := os.Args[1]
 	fs := flag.NewFlagSet(action, flag.ContinueOnError)
@@ -57,23 +58,37 @@ func run() error {
 		}
 		return write(*out, []byte(prompt))
 	}
-	if action != "validate" && action != "import" {
+
+	isInterview := action == "validate-interview" || action == "import-interview"
+	if action != "validate" && action != "import" && !isInterview {
 		return fmt.Errorf("unknown action %s", action)
 	}
-	data, err := os.ReadFile(*bundlePath)
-	if err != nil {
-		return err
+	var interview authoring.Interview
+	var bundles []authoring.Bundle
+	if isInterview {
+		var err error
+		interview, bundles, err = authoring.LoadInterview(*bundlePath)
+		if err != nil {
+			return err
+		}
+	} else {
+		data, err := os.ReadFile(*bundlePath)
+		if err != nil {
+			return err
+		}
+		if len(data) > 2*1024*1024 {
+			return fmt.Errorf("bundle exceeds 2 MiB")
+		}
+		var bundle authoring.Bundle
+		if err = authoring.Decode(data, &bundle); err != nil {
+			return err
+		}
+		if err = bundle.Check(); err != nil {
+			return err
+		}
+		bundles = []authoring.Bundle{bundle}
 	}
-	if len(data) > 2*1024*1024 {
-		return fmt.Errorf("bundle exceeds 2 MiB")
-	}
-	var bundle authoring.Bundle
-	if err = authoring.Decode(data, &bundle); err != nil {
-		return err
-	}
-	if err = bundle.Check(); err != nil {
-		return err
-	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 	executor := sandbox.NewDocker()
@@ -83,11 +98,19 @@ func run() error {
 		return fmt.Errorf("sandbox image unavailable; start Docker and run make sandbox-image: %s", imageOut)
 	}
 	executor.Image = strings.TrimSpace(string(imageOut))
-	report, err := authoring.Validate(ctx, bundle, executor, executor.Image)
-	if err != nil {
-		return fmt.Errorf("draft rejected: %w", err)
+	reports := make([]authoring.Report, 0, len(bundles))
+	for index, bundle := range bundles {
+		if isInterview {
+			fmt.Fprintf(os.Stderr, "Validating %d/%d: %s\n", index+1, len(bundles), bundle.Title)
+		}
+		report, err := authoring.Validate(ctx, bundle, executor, executor.Image)
+		if err != nil {
+			return fmt.Errorf("draft %s rejected: %w", bundle.Slug, err)
+		}
+		reports = append(reports, report)
 	}
-	if action == "import" {
+
+	if action == "import" || action == "import-interview" {
 		cfg, err := config.Load()
 		if err != nil {
 			return err
@@ -100,11 +123,23 @@ func run() error {
 		if err = db.RunMigrations(ctx, conn); err != nil {
 			return err
 		}
-		if err = db.ImportGenerated(ctx, conn, bundle, report); err != nil {
+		if isInterview {
+			err = db.ImportInterview(ctx, conn, interview, bundles, reports)
+		} else {
+			err = db.ImportGenerated(ctx, conn, bundles[0], reports[0])
+		}
+		if err != nil {
 			return err
 		}
 	}
-	return write(*out, report.JSON())
+	if isInterview {
+		data, err := json.MarshalIndent(map[string]any{"interview": interview.Slug, "reports": reports}, "", "  ")
+		if err != nil {
+			return err
+		}
+		return write(*out, append(data, '\n'))
+	}
+	return write(*out, reports[0].JSON())
 }
 func write(path string, data []byte) error {
 	if path == "" {

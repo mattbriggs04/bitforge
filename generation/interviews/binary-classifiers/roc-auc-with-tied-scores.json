@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "category": "ai_ml",
+  "difficulty": "medium",
+  "format": "single_choice",
+  "seed": 20261115,
+  "provenance": "Authored with Codex for BitForge on 2026-11-15",
+  "comparator": {
+    "kind": "json"
+  },
+  "slug": "roc-auc-with-tied-scores",
+  "title": "ROC-AUC with a tied score",
+  "shortDescription": "Evaluate ranking quality without breaking ties arbitrarily.",
+  "statement": "A classifier assigns these scores:\n\n- $P_1$: positive, score $0.8$\n- $P_2$: positive, score $0.5$\n- $N_1$: negative, score $0.5$\n- $N_2$: negative, score $0.2$\n\nWhat is the ROC-AUC?",
+  "constraints": "Higher scores indicate stronger evidence for the positive class. Use the standard convention that a tied positive-negative pair receives $\\frac{1}{2}$ credit, equivalent to a straight segment through each tied threshold block on the ROC curve.",
+  "objectives": [
+    "Compute ROC-AUC from positive-negative rankings",
+    "Handle tied classifier scores consistently"
+  ],
+  "tags": [
+    "binary-classifiers",
+    "ml-interview"
+  ],
+  "targetMinutes": 6,
+  "options": [
+    {
+      "id": "A",
+      "text": "$0.750$",
+      "rationale": "This counts a tied positive-negative pair as a loss."
+    },
+    {
+      "id": "B",
+      "text": "$1.000$",
+      "rationale": "This counts a tie as a full win or breaks it in favor of the positive example."
+    },
+    {
+      "id": "C",
+      "text": "$0.875$",
+      "rationale": "Three positive-negative comparisons are wins and one is a tie: $\\frac{3+0.5}{4}$."
+    },
+    {
+      "id": "D",
+      "text": "$0.500$",
+      "rationale": "The scores rank most positive-negative pairs correctly, so the AUC is above chance."
+    }
+  ],
+  "answer": "\"C\"",
+  "independent": {
+    "language": "python",
+    "source": "import json\nfrom fractions import Fraction as F\nrows=[(F(8,10),1),(F(5,10),1),(F(5,10),0),(F(2,10),0)]\np=sum(y for _,y in rows);n=len(rows)-p\ntp=fp=0;area=F(0)\nfor threshold in sorted({s for s,_ in rows},reverse=True):\n    old_tpr,old_fpr=F(tp,p),F(fp,n)\n    block=[y for s,y in rows if s==threshold]\n    tp+=sum(block);fp+=len(block)-sum(block)\n    area+=(F(fp,n)-old_fpr)*(F(tp,p)+old_tpr)/2\noptions={'A':F(3,4),'B':F(1),'C':F(7,8),'D':F(1,2)}\nmatches=[k for k,v in options.items() if v==area]\nassert len(matches)==1\nprint(json.dumps(matches[0]))\n"
+  },
+  "explanation": "There are four positive-negative pairs. $P_1$ beats $N_1$ and $N_2$. $P_2$ ties $N_1$ and beats $N_2$. Awarding half credit to the tie gives\n\n$$\n\\mathrm{AUC}=\\frac{1+1+\\frac{1}{2}+1}{4}=0.875.\n$$\n\nTied scores must move through the ROC curve together.",
+  "reviewNotes": "The explanatory derivation enumerates positive-negative pairs. The executable verifier independently constructs the threshold-block ROC path and integrates trapezoids using exact fractions, including the initial (0,0) and final (1,1) points."
+}

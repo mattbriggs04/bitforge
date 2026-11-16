@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "category": "ai_ml",
+  "difficulty": "medium",
+  "format": "single_choice",
+  "seed": 20261115,
+  "provenance": "Authored with Codex for BitForge on 2026-11-15",
+  "comparator": {
+    "kind": "json"
+  },
+  "slug": "precision-under-prevalence-shift",
+  "title": "When the positive class is rare",
+  "shortDescription": "Translate conditional rates into deployment precision.",
+  "statement": "At a fixed threshold, a binary classifier has a true-positive rate of $80\\%$ and a false-positive rate of $10\\%$.\n\nIn deployment, only $1\\%$ of examples are positive. Assume those two conditional rates remain unchanged.\n\nWhat is the classifier's deployment precision, approximately?",
+  "constraints": "Precision is $\\Pr(y=1\\mid\\widehat{y}=1)$. Rates and prevalence describe the population, not uncertain estimates. Round the percentage to two decimal places.",
+  "objectives": [
+    "Apply Bayes\u2019 rule to classifier evaluation",
+    "Distinguish precision from recall",
+    "Reason about the base-rate effect"
+  ],
+  "tags": [
+    "binary-classifiers",
+    "ml-interview"
+  ],
+  "targetMinutes": 6,
+  "options": [
+    {
+      "id": "A",
+      "text": "$7.48\\%$",
+      "rationale": "For $10{,}000$ examples there are $80$ true positives and $990$ false positives. Precision is $\\frac{80}{1070}$."
+    },
+    {
+      "id": "B",
+      "text": "$44.44\\%$",
+      "rationale": "This does not follow from the stated prevalence and conditional rates."
+    },
+    {
+      "id": "C",
+      "text": "$80.00\\%$",
+      "rationale": "This is the true-positive rate (recall), not precision."
+    },
+    {
+      "id": "D",
+      "text": "$88.89\\%$",
+      "rationale": "Using $\\frac{0.8}{0.8+0.1}$ implicitly gives equal weight to the positive and negative populations, ignoring the $1\\%$ prevalence."
+    }
+  ],
+  "answer": "\"A\"",
+  "independent": {
+    "language": "python",
+    "source": "import json\nfrom fractions import Fraction as F\nprevalence=F(1,100);recall=F(4,5);fpr=F(1,10)\npositive_mass=prevalence*recall\nfalse_positive_mass=(1-prevalence)*fpr\npercentage=100*positive_mass/(positive_mass+false_positive_mass)\noptions={'A':F(748,100),'B':F(4444,100),'C':F(80),'D':F(8889,100)}\nmatch=[k for k,v in options.items() if abs(percentage-v)<=F(1,200)]\nassert len(match)==1\nprint(json.dumps(match[0]))\n"
+  },
+  "explanation": "Among $10{,}000$ deployment examples, $100$ are positive and $9{,}900$ negative. The classifier produces $80$ true positives and $990$ false positives. Thus\n\n$$\n\\mathrm{Precision}=\\frac{\\mathrm{TP}}{\\mathrm{TP}+\\mathrm{FP}}=\\frac{80}{80+990}\\approx 0.074766=7.48\\%.\n$$\n\nStrong recall alone does not guarantee strong precision when the positive class is rare.",
+  "reviewNotes": "The count-based derivation uses a population of 10,000. The independent verifier uses exact rational probabilities and Bayes\u2019 rule, then verifies a unique option within the stated rounding interval. Distribution shift assumptions are explicit."
+}

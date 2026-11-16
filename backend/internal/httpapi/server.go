@@ -39,6 +39,8 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", s.handleHealth)
 	mux.HandleFunc("GET /api/v1/health", s.handleHealth)
+	mux.HandleFunc("GET /api/v1/interviews", s.handleListInterviews)
+	mux.HandleFunc("GET /api/v1/interviews/{slug}", s.handleGetInterview)
 	mux.HandleFunc("GET /api/v1/problems", s.handleListProblems)
 	mux.HandleFunc("GET /api/v1/problems/{slug}", s.handleGetProblem)
 	mux.HandleFunc("GET /api/v1/problems/{slug}/explanation", s.handleExplanation)
@@ -253,4 +255,28 @@ func (s *Server) handleExplanation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, 200, map[string]string{"explanation": text})
+}
+
+func (s *Server) handleListInterviews(w http.ResponseWriter, r *http.Request) {
+	items, err := s.problemService.ListInterviews(r.Context())
+	if err != nil {
+		log.Printf("list interviews: %v", err)
+		writeError(w, 500, "could not load interviews")
+		return
+	}
+	writeJSON(w, 200, map[string]any{"items": items})
+}
+func (s *Server) handleGetInterview(w http.ResponseWriter, r *http.Request) {
+	interview, err := s.problemService.GetInterview(r.Context(), r.PathValue("slug"))
+	if err != nil {
+		log.Printf("get interview: %v", err)
+		writeError(w, 500, "could not load interview")
+		return
+	}
+	if interview == nil {
+		writeError(w, 404, "interview not found")
+		return
+	}
+	s.annotateCompletion(r.Context(), r, interview.Problems)
+	writeJSON(w, 200, interview)
 }

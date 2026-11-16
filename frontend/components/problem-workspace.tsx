@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import ReactMarkdown from "react-markdown";
+import { Markdown } from "@/components/markdown";
 import { ProblemDetail } from "@/lib/types";
 import { ProblemWorkbench } from "@/components/problem-workbench";
 
@@ -144,12 +144,12 @@ export function ProblemWorkspace({ problem }: Props) {
         <article className="problem-panel problem-panel-left" style={{ width: `${leftPanePercent}%` }}>
           <div className="problem-pane-section markdown-body">
             <h2>Problem</h2>
-            <ReactMarkdown>{statementMarkdown}</ReactMarkdown>
+            <Markdown>{statementMarkdown}</Markdown>
           </div>
 
           <div className="problem-pane-section markdown-body">
             <h2>Constraints</h2>
-            <ReactMarkdown>{problem.constraintsMarkdown}</ReactMarkdown>
+            <Markdown>{problem.constraintsMarkdown}</Markdown>
           </div>
 
           {problem.samples.length > 0 ? (
@@ -160,7 +160,7 @@ export function ProblemWorkspace({ problem }: Props) {
                   <h3>{sample.name}</h3>
                   <p><strong>Input</strong> {sample.input}</p>
                   <p><strong>Expected</strong> {sample.expected}</p>
-                  {sample.explanation ? <p>{sample.explanation}</p> : null}
+                  {sample.explanation ? <p className="sample-explanation"><Markdown inline>{sample.explanation}</Markdown></p> : null}
                 </article>
               ))}</div>
             </div>
@@ -171,7 +171,7 @@ export function ProblemWorkspace({ problem }: Props) {
               <details className="solution-panel">
                 <summary>Solution</summary>
                 <div className="solution-body markdown-body">
-                  <ReactMarkdown>{solutionMarkdown}</ReactMarkdown>
+                  <Markdown>{solutionMarkdown}</Markdown>
                 </div>
               </details>
             </div>

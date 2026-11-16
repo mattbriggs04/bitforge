@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import { problemLabel } from "@/lib/problem-labels";
+import { Markdown } from "@/components/markdown";
 import { ProblemDetail, Submission } from "@/lib/types";
 import { loadOrCreateUserKey, loadStoredUsername } from "@/lib/username";
 
@@ -79,8 +78,6 @@ export function AnswerWorkbench({ problem }: { problem: ProblemDetail }) {
   }
   return (
     <section className="answer-workbench">
-      <p className="eyebrow">{problemLabel(format)}</p>
-      <h2>Your answer</h2>
 
       {format === "numeric" ? (
         <label className="numeric-answer">Answer<input type="text" inputMode="decimal" value={numeric} onChange={(e) => save(selected, e.target.value)} placeholder="0.00" aria-label="Numeric answer" /></label>
@@ -90,7 +87,7 @@ export function AnswerWorkbench({ problem }: { problem: ProblemDetail }) {
           {options.map((option) => (
             <label key={option.id} className={`answer-option ${selected.includes(option.id) ? "is-selected" : ""}`}>
               <input type={format === "multiple_select" ? "checkbox" : "radio"} name="answer" checked={selected.includes(option.id)} onChange={() => save(format === "single_choice" ? [option.id] : selected.includes(option.id) ? selected.filter((id) => id !== option.id) : [...selected, option.id], numeric)} />
-              <span><strong>{option.id}</strong> {option.text}</span>
+              <span className="answer-option-text"><strong>{option.id}</strong> <Markdown inline>{option.text}</Markdown></span>
             </label>
           ))}
         </fieldset>
@@ -101,7 +98,7 @@ export function AnswerWorkbench({ problem }: { problem: ProblemDetail }) {
         {submission ? <p>{submission.status === "queued" || submission.status === "running" ? "Grading…" : submission.verdict === "accepted" ? "Correct." : submission.verdict === "wrong_answer" ? "Incorrect. Try again or view the explanation." : submission.errorMessage || "Grading could not finish."}</p> : null}
         {submission?.status === "completed" ? <button className="btn btn-muted" onClick={() => void reveal()}>Explanation</button> : null}
       </div>
-      {explanation ? <article className="markdown-body answer-explanation"><ReactMarkdown>{explanation}</ReactMarkdown></article> : null}
+      {explanation ? <article className="markdown-body answer-explanation"><Markdown>{explanation}</Markdown></article> : null}
     </section>
   );
 }

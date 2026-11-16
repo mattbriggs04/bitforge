@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "slug": "binary-classifiers",
+  "title": "Binary classifiers",
+  "category": "ai_ml",
+  "description": "Gradients, class imbalance, ranking metrics, and an F1 thresholding exercise.",
+  "questions": [
+    "logistic-gradient-at-origin.json",
+    "precision-under-prevalence-shift.json",
+    "roc-auc-with-tied-scores.json",
+    "best-f1-threshold.json"
+  ]
+}

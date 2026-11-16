@@ -46,6 +46,7 @@ export type ProblemDetail = ProblemSummary & {
   languageTemplates: LanguageTemplate[];
   assets: ProblemAsset[];
   metadata: ProblemMetadata;
+  interviews?: InterviewSummary[];
 };
 
 export type SubmissionCaseResult = {
@@ -87,4 +88,17 @@ export type Submission = {
 
 export type APIError = {
   error: string;
+};
+
+export type InterviewSummary = {
+  slug: string;
+  title: string;
+  category: string;
+  description: string;
+  questionCount: number;
+  targetMinutes: number;
+};
+
+export type InterviewDetail = InterviewSummary & {
+  problems: ProblemSummary[];
 };

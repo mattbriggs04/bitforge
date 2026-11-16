@@ -16,6 +16,7 @@ export function SiteHeader() {
         <div className="header-actions">
           <nav className="main-nav" aria-label="Main navigation">
             <Link href="/" aria-current={pathname === "/" ? "page" : undefined}>Today</Link>
+            <Link href="/interviews" aria-current={pathname.startsWith("/interviews") ? "page" : undefined}>Interviews</Link>
             <Link href="/problems" aria-current={pathname.startsWith("/problems") ? "page" : undefined}>Problems</Link>
           </nav>
           <ThemeToggle />

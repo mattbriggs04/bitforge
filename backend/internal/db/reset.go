@@ -12,6 +12,8 @@ func ResetDevelopmentDatabase(ctx context.Context, conn *sql.DB) error {
 	}
 
 	for _, table := range []string{
+		"interview_problems",
+		"interviews",
 		"submission_test_results",
 		"judge_jobs",
 		"submissions",

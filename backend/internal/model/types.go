@@ -22,6 +22,7 @@ type ProblemDetail struct {
 	LanguageTemplates   []LanguageTemplate `json:"languageTemplates"`
 	Assets              []ProblemAsset     `json:"assets"`
 	Metadata            map[string]any     `json:"metadata"`
+	Interviews          []InterviewSummary `json:"interviews,omitempty"`
 }
 
 type ProblemSample struct {
@@ -120,4 +121,17 @@ type JudgeResult struct {
 	RuntimeOutput string
 	ErrorMessage  string
 	Results       []SubmissionTestResult
+}
+
+type InterviewSummary struct {
+	Slug          string `json:"slug"`
+	Title         string `json:"title"`
+	Category      string `json:"category"`
+	Description   string `json:"description"`
+	QuestionCount int    `json:"questionCount"`
+	TargetMinutes int    `json:"targetMinutes"`
+}
+type InterviewDetail struct {
+	InterviewSummary
+	Problems []ProblemSummary `json:"problems"`
 }

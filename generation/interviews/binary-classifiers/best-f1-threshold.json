@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "category": "ai_ml",
+  "difficulty": "medium",
+  "format": "coding",
+  "seed": 20261115,
+  "provenance": "Authored with Codex for BitForge on 2026-11-15",
+  "comparator": {
+    "kind": "json",
+    "absolute": 1e-10,
+    "relative": 1e-10
+  },
+  "slug": "best-f1-threshold",
+  "title": "Choose the best F1 threshold",
+  "targetMinutes": 25,
+  "shortDescription": "Find an optimal classifier threshold while respecting ties and edge cases.",
+  "objectives": [
+    "Convert scores into thresholded predictions",
+    "Compute F1 from confusion counts",
+    "Process tied scores as one decision block",
+    "Choose deterministic optima without floating-point tie errors"
+  ],
+  "tags": [
+    "binary-classifiers",
+    "thresholds",
+    "f1",
+    "sorting"
+  ],
+  "statement": "You have validation scores from a binary classifier. Choose the threshold that maximizes $F_1$.\n\nRead one JSON object from stdin:\n\n```json\n{\"scores\": [0.9, 0.6, 0.4], \"labels\": [1, 0, 1]}\n```\n\nThe arrays have equal length. For a numeric threshold $t$, predict positive exactly when $\\mathrm{score}\\ge t$. Every **distinct observed score** is an allowed threshold. A JSON `null` threshold is also allowed and means predict negative for every example.\n\n$$\nF_1=\\frac{2\\,\\mathrm{TP}}{2\\,\\mathrm{TP}+\\mathrm{FP}+\\mathrm{FN}}.\n$$\n\nDefine $F_1=0$ when its denominator is zero.\n\nIf several thresholds maximize $F_1$, choose the **largest** threshold. Treat `null` as larger than every numeric threshold. In particular, when every candidate has $F_1=0$, return `null`.\n\nWrite one JSON object with exactly these fields:\n\n```json\n{\"threshold\": 0.4, \"f1\": 0.8}\n```\n\nNumeric fields are accepted within absolute or relative error $10^{-10}$. All examples sharing a score must receive the same prediction. Aim for $\\mathcal{O}(n\\log n)$ time.",
+  "constraints": "$1\\le n\\le 1000$. Scores are finite JSON numbers in $[0,1]$, with at most three decimal places. Labels are integers $0$ or $1$. Input always satisfies this contract; no malformed-input handling is graded. The `null` threshold is a sentinel, not a missing answer. Select the threshold on validation data; this exercise does not authorize tuning against a held-out test set.",
+  "templates": {
+    "python": "import json\nimport sys\n\n\ndef best_threshold(scores, labels):\n    # Return {\"threshold\": ..., \"f1\": ...}.\n    return {\"threshold\": None, \"f1\": 0.0}\n\n\nif __name__ == \"__main__\":\n    data = json.load(sys.stdin)\n    print(json.dumps(best_threshold(data[\"scores\"], data[\"labels\"])))\n"
+  },
+  "references": [
+    {
+      "language": "python",
+      "source": "import json, sys\n\ndef best_threshold(scores, labels):\n    positives=sum(labels)\n    ranked=sorted(zip(scores, labels), reverse=True)\n    best_num,best_den=0,1\n    threshold=None\n    tp=predicted=i=0\n    while i<len(ranked):\n        score=ranked[i][0]\n        j=i\n        while j<len(ranked) and ranked[j][0]==score:\n            tp+=ranked[j][1]\n            predicted+=1\n            j+=1\n        num=2*tp\n        denom=positives+predicted\n        if num*best_den>best_num*denom:\n            best_num,best_den=num,denom\n            threshold=score\n        i=j\n    return {\"threshold\":threshold,\"f1\":best_num/best_den}\n\nif __name__==\"__main__\":\n    data=json.load(sys.stdin)\n    print(json.dumps(best_threshold(data[\"scores\"],data[\"labels\"])))\n"
+    }
+  ],
+  "independent": {
+    "language": "python",
+    "source": "import json, sys\nfrom fractions import Fraction\n\ndef solve(scores, labels):\n    # Exhaustively evaluate every allowed threshold; no running counts or sorting of rows.\n    candidates=[None]+sorted(set(scores),reverse=True)\n    best=Fraction(0);chosen=None\n    for threshold in candidates:\n        prediction=[False]*len(scores) if threshold is None else [s>=threshold for s in scores]\n        tp=sum(y==1 and p for y,p in zip(labels,prediction))\n        fp=sum(y==0 and p for y,p in zip(labels,prediction))\n        fn=sum(y==1 and not p for y,p in zip(labels,prediction))\n        denominator=2*tp+fp+fn\n        value=Fraction(2*tp,denominator) if denominator else Fraction(0)\n        if value>best:\n            best=value;chosen=threshold\n    return {\"threshold\":chosen,\"f1\":float(best)}\n\ndata=json.load(sys.stdin)\nprint(json.dumps(solve(data[\"scores\"],data[\"labels\"])))\n"
+  },
+  "generator": {
+    "language": "python",
+    "source": "import json,random,sys\nr=random.Random(int(sys.stdin.read()))\ncases=[]\ndef add(name,scores,labels):\n    cases.append({'name':name,'input':json.dumps({'scores':scores,'labels':labels},separators=(',',':'))})\nfor i in range(24):\n    n=r.randint(1,64)\n    scores=[r.randint(0,10)/10 for _ in range(n)]\n    labels=[r.randrange(2) for _ in range(n)]\n    if i%9==0: labels=[0]*n\n    if i%9==1: labels=[1]*n\n    if i%9==2: scores=[.5]*n\n    add('seeded-'+str(i),scores,labels)\nadd('max-size-distinct',[i/1000 for i in range(1000)],[r.randrange(2) for _ in range(1000)])\nadd('max-size-tied',[.7]*1000,[i%2 for i in range(1000)])\nadd('permuted-ranking',[.9,.6,.8,.7],[1,1,0,0])\nadd('zero-one-endpoints',[0.,1.,0.,1.],[1,0,0,1])\nprint(json.dumps(cases,separators=(',',':')))\n"
+  },
+  "mutants": [
+    {
+      "language": "python",
+      "source": "import json, sys\nx=json.load(sys.stdin);p=sum(x['labels']);tp=0;best=0.;threshold=None\nfor count,(s,y) in enumerate(sorted(zip(x['scores'],x['labels']),reverse=True),1):\n    tp+=y\n    score=2*tp/(p+count)\n    if score>best:\n        best=score;threshold=s\nprint(json.dumps({'threshold':threshold,'f1':best}))\n"
+    },
+    {
+      "language": "python",
+      "source": "import json, sys\n\ndef best_threshold(scores, labels):\n    positives=sum(labels)\n    ranked=sorted(zip(scores, labels), reverse=True)\n    best_num,best_den=0,1\n    threshold=None\n    tp=predicted=i=0\n    while i<len(ranked):\n        score=ranked[i][0]\n        j=i\n        while j<len(ranked) and ranked[j][0]==score:\n            tp+=ranked[j][1]\n            predicted+=1\n            j+=1\n        num=2*tp\n        denom=positives+predicted\n        if num*best_den>=best_num*denom:\n            best_num,best_den=num,denom\n            threshold=score\n        i=j\n    return {\"threshold\":threshold,\"f1\":best_num/best_den}\n\nif __name__==\"__main__\":\n    data=json.load(sys.stdin)\n    print(json.dumps(best_threshold(data[\"scores\"],data[\"labels\"])))\n"
+    },
+    {
+      "language": "python",
+      "source": "import json, sys\n\ndef best_threshold(scores, labels):\n    positives=sum(labels)\n    ranked=sorted(zip(scores, labels), reverse=True)\n    best_num,best_den=0,1\n    threshold=None\n    tp=predicted=i=0\n    while i<len(ranked):\n        score=ranked[i][0]\n        j=i\n        while j<len(ranked) and ranked[j][0]==score:\n            tp+=ranked[j][1]\n            predicted+=1\n            j+=1\n        num=2*tp\n        denom=tp+predicted\n        if num*best_den>best_num*denom:\n            best_num,best_den=num,denom\n            threshold=score\n        i=j\n    return {\"threshold\":threshold,\"f1\":best_num/best_den}\n\nif __name__==\"__main__\":\n    data=json.load(sys.stdin)\n    print(json.dumps(best_threshold(data[\"scores\"],data[\"labels\"])))\n"
+    }
+  ],
+  "cases": [
+    {
+      "name": "recover-positive",
+      "input": "{\"scores\": [0.9, 0.6, 0.4], \"labels\": [1, 0, 1]}",
+      "expected": "{\"threshold\": 0.4, \"f1\": 0.8}",
+      "hidden": false
+    },
+    {
+      "name": "no-positives",
+      "input": "{\"scores\": [0.7, 0.1], \"labels\": [0, 0]}",
+      "expected": "{\"threshold\": null, \"f1\": 0.0}",
+      "hidden": false
+    },
+    {
+      "name": "highest-threshold-tie",
+      "input": "{\"scores\": [0.9, 0.8, 0.7, 0.6], \"labels\": [1, 0, 0, 1]}",
+      "expected": "{\"threshold\": 0.9, \"f1\": 0.6666666666666666}",
+      "hidden": true
+    },
+    {
+      "name": "all-scores-tied",
+      "input": "{\"scores\": [0.5, 0.5, 0.5, 0.5], \"labels\": [0, 1, 0, 1]}",
+      "expected": "{\"threshold\": 0.5, \"f1\": 0.6666666666666666}",
+      "hidden": true
+    },
+    {
+      "name": "all-positive",
+      "input": "{\"scores\": [0.1, 0.3], \"labels\": [1, 1]}",
+      "expected": "{\"threshold\": 0.1, \"f1\": 1.0}",
+      "hidden": true
+    },
+    {
+      "name": "one-negative",
+      "input": "{\"scores\": [0.0], \"labels\": [0]}",
+      "expected": "{\"threshold\": null, \"f1\": 0.0}",
+      "hidden": true
+    },
+    {
+      "name": "one-positive",
+      "input": "{\"scores\": [1.0], \"labels\": [1]}",
+      "expected": "{\"threshold\": 1.0, \"f1\": 1.0}",
+      "hidden": true
+    }
+  ],
+  "explanation": "Sort examples by decreasing score and sweep whole equal-score blocks. After each block, every processed example is predicted positive. If $P$ is the total number of actual positives and $K$ the number predicted positive, then\n\n$$\nF_1=\\frac{2\\,\\mathrm{TP}}{P+K}.\n$$\n\nCompare candidate fractions by integer cross multiplication. Start with the `null` candidate, score zero; process thresholds from largest to smallest and replace the best only on strict improvement. This preserves the largest-threshold tie break, including `null`. Sorting costs $\\mathcal{O}(n\\log n)$; the sweep costs $\\mathcal{O}(n)$.",
+  "reviewNotes": "The independent implementation enumerates every distinct threshold, constructs the full prediction vector, and computes TP/FP/FN with exact Fraction comparisons. It shares neither running counts nor the optimized sweep with the reference. Hand-derived anchors cover a nontrivial optimum, no positives, an exact F1 tie between different thresholds, tied score blocks, all positives and singleton inputs. Seeded cases emphasize duplicates, permutations, extremes and maximum size. Three mutants cover row-wise tie handling, the wrong threshold tie-break and a precision-like denominator. Validation cases are deterministic and only validation-label threshold selection is discussed."
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "category": "ai_ml",
+  "difficulty": "medium",
+  "format": "single_choice",
+  "seed": 20261115,
+  "provenance": "Authored with Codex for BitForge on 2026-11-15",
+  "comparator": {
+    "kind": "json"
+  },
+  "slug": "logistic-gradient-at-origin",
+  "title": "A balanced batch, a nonzero gradient",
+  "shortDescription": "Differentiate an averaged binary cross-entropy loss.",
+  "statement": "A logistic classifier has no intercept and two weights $\\mathbf{w}=(w_1,w_2)$. It predicts\n\n$$\np(y=1\\mid\\mathbf{x})=\\sigma(\\mathbf{w}^{\\top}\\mathbf{x}).\n$$\n\nThe batch contains:\n\n- $\\mathbf{x}_1=(1,2)$, $y_1=1$\n- $\\mathbf{x}_2=(-1,1)$, $y_2=0$\n\nThe objective is the **mean** binary cross-entropy plus an L2 penalty:\n\n$$\n\\begin{aligned}\nL(\\mathbf{w}) &=-\\frac{1}{2}\\sum_{i=1}^{2}\\left[y_i\\log p_i+(1-y_i)\\log(1-p_i)\\right]\\\\\n&\\quad+\\frac{\\lambda}{2}\\lVert\\mathbf{w}\\rVert_2^2,\\qquad \\lambda=2,\n\\end{aligned}\n$$\n\nwhere $p_i=\\sigma(\\mathbf{w}^{\\top}\\mathbf{x}_i)$.\n\nWhat is $\\nabla L(\\mathbf{0})$, in the order $\\left(\\frac{\\partial L}{\\partial w_1},\\frac{\\partial L}{\\partial w_2}\\right)$?",
+  "constraints": "Use natural logarithms and $\\sigma(z)=\\frac{1}{1+e^{-z}}$. Both examples have equal weight. The regularizer is added after averaging the data loss. No intercept is trained.",
+  "objectives": [
+    "Derive the logistic cross-entropy gradient",
+    "Distinguish mean and summed objectives",
+    "Evaluate the L2 gradient at zero"
+  ],
+  "tags": [
+    "binary-classifiers",
+    "ml-interview"
+  ],
+  "targetMinutes": 8,
+  "options": [
+    {
+      "id": "A",
+      "text": "$\\left(-1,-\\frac{1}{2}\\right)$",
+      "rationale": "This is the summed data gradient; the stated loss averages two examples."
+    },
+    {
+      "id": "B",
+      "text": "$\\left(\\frac{1}{2},\\frac{1}{4}\\right)$",
+      "rationale": "This reverses the gradient sign. It points along the negative gradient rather than the gradient."
+    },
+    {
+      "id": "C",
+      "text": "$\\left(-\\frac{1}{2},-\\frac{1}{4}\\right)$",
+      "rationale": "Average $(p-y)\\mathbf{x}$ across both examples. At the origin $p=\\frac{1}{2}$ and the L2 gradient $\\lambda\\mathbf{w}$ is zero."
+    },
+    {
+      "id": "D",
+      "text": "$(0,0)$",
+      "rationale": "Balanced labels do not imply cancellation of feature-weighted residuals."
+    }
+  ],
+  "answer": "\"C\"",
+  "independent": {
+    "language": "python",
+    "source": "import json, math\nsamples=[((1.,2.),1.),((-1.,1.),0.)]\ndef loss(w):\n    total=0.\n    for x,y in samples:\n        z=sum(a*b for a,b in zip(w,x))\n        total+=max(z,0.)+math.log1p(math.exp(-abs(z)))-y*z\n    return total/len(samples)+sum(v*v for v in w)\nh=1e-6\ng=[]\nfor j in range(2):\n    lo=[0.,0.];hi=[0.,0.];lo[j]=-h;hi[j]=h\n    g.append((loss(hi)-loss(lo))/(2*h))\noptions={'A':[-1.,-.5],'B':[.5,.25],'C':[-.5,-.25],'D':[0.,0.]}\nmatches=[k for k,v in options.items() if max(abs(a-b) for a,b in zip(g,v))<1e-7]\nassert len(matches)==1\nprint(json.dumps(matches[0]))\n"
+  },
+  "explanation": "For one example, the cross-entropy gradient is $(p-y)\\mathbf{x}$. At $\\mathbf{w}=\\mathbf{0}$, both probabilities are $\\frac{1}{2}$. The two contributions are $\\left(-\\frac{1}{2},-1\\right)$ and $\\left(-\\frac{1}{2},\\frac{1}{2}\\right)$. Their mean is\n\n$$\n\\nabla L(\\mathbf{0})=\\frac{1}{2}\\left[\\left(-\\frac{1}{2},-1\\right)+\\left(-\\frac{1}{2},\\frac{1}{2}\\right)\\right]=\\left(-\\frac{1}{2},-\\frac{1}{4}\\right).\n$$\n\nThe regularizer contributes $\\lambda\\mathbf{w}=(0,0)$.",
+  "reviewNotes": "The answer was derived analytically from feature-weighted residuals. The executable verifier instead differentiates the scalar, numerically stable loss with central finite differences and matches all candidate vectors. The batch average, sign and regularization convention are explicit."
+}

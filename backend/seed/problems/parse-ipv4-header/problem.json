@@ -41,8 +41,8 @@
   "visibleCases": [
     {
       "name": "parse basic tcp header",
-      "displayInput": "20-byte IPv4 header: version=4, ihl=5, protocol=6",
-      "displayExpect": "return 0 and parse all core fields correctly",
+      "displayInput": "uint8_t packet[20] = {\n    0x45, 0x00, 0x00, 0x3C,\n    0x1C, 0x46, 0x40, 0x00,\n    0x40, 0x06, 0xB1, 0xE6,\n    0xC0, 0xA8, 0x01, 0x0A,\n    0x08, 0x08, 0x08, 0x08\n};\nipv4_header_t out;\nint rc = parse_ipv4_header(packet, sizeof(packet), &out);",
+      "displayExpect": "rc = 0\nout.version = 4\nout.ihl = 5\nout.total_length = 60\nout.identification = 0x1C46\nout.flags = 2\nout.fragment_offset = 0\nout.ttl = 64\nout.protocol = 6\nout.header_checksum = 0xB1E6\nout.src_addr = 0xC0A8010A  // 192.168.1.10\nout.dst_addr = 0x08080808  // 8.8.8.8",
       "explanation": "Baseline success case.",
       "codeFile": "cases/visible/valid_basic.c",
       "weight": 1,
@@ -50,8 +50,8 @@
     },
     {
       "name": "reject non-ipv4",
-      "displayInput": "version nibble != 4",
-      "displayExpect": "-3",
+      "displayInput": "uint8_t packet[20] = {\n    0x65, 0x00, 0x00, 0x14,\n    0, 0, 0, 0,\n    64, 17, 0, 0,\n    1, 2, 3, 4,\n    5, 6, 7, 8\n};\nipv4_header_t out;\nint rc = parse_ipv4_header(packet, sizeof(packet), &out);",
+      "displayExpect": "rc = -3",
       "explanation": "Version validation is required.",
       "codeFile": "cases/visible/invalid_version.c",
       "weight": 1,
@@ -59,8 +59,8 @@
     },
     {
       "name": "reject invalid ihl",
-      "displayInput": "ihl < 5",
-      "displayExpect": "-4",
+      "displayInput": "uint8_t packet[20] = {\n    0x44, 0x00, 0x00, 0x14,\n    0, 0, 0, 0,\n    64, 17, 0, 0,\n    1, 1, 1, 1,\n    2, 2, 2, 2\n};\nipv4_header_t out;\nint rc = parse_ipv4_header(packet, sizeof(packet), &out);",
+      "displayExpect": "rc = -4",
       "explanation": "IHL must be at least 5 (20 bytes).",
       "codeFile": "cases/visible/invalid_ihl.c",
       "weight": 1,
@@ -68,8 +68,8 @@
     },
     {
       "name": "reject truncated base header",
-      "displayInput": "packet length < 20",
-      "displayExpect": "-2",
+      "displayInput": "uint8_t packet[19] = {\n    0x45, 0x00, 0x00, 0x14,\n    0, 0, 0, 0,\n    64, 17, 0, 0,\n    1, 2, 3, 4,\n    5, 6, 7\n};\nipv4_header_t out;\nint rc = parse_ipv4_header(packet, sizeof(packet), &out);",
+      "displayExpect": "rc = -2",
       "explanation": "Minimum IPv4 header is 20 bytes.",
       "codeFile": "cases/visible/truncated_minimum_header.c",
       "weight": 1,

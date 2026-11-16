@@ -102,9 +102,9 @@ cat > "$base_dir/problem.json" <<JSON
   "visibleCases": [
     {
       "name": "example visible",
-      "displayInput": "example input",
-      "displayExpect": "example output",
-      "explanation": "Visible case for run mode",
+      "displayInput": "int got = solve();",
+      "displayExpect": "got = 1",
+      "explanation": "Replace this scaffold with a real call and its concrete expected result.",
       "codeFile": "cases/visible/example_visible.c",
       "weight": 1,
       "sortOrder": 10

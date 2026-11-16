@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "empty string",
-      "displayInput": "s = \"\"",
-      "displayExpect": "0",
+      "displayInput": "const char *input = \"\";\nsize_t got = strlen(input);",
+      "displayExpect": "got = 0",
       "explanation": "Empty strings have length zero.",
       "codeFile": "cases/visible/empty.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "basic word",
-      "displayInput": "s = \"kernel\"",
-      "displayExpect": "6",
+      "displayInput": "const char *input = \"kernel\";\nsize_t got = strlen(input);",
+      "displayExpect": "got = 6",
       "explanation": "Counts bytes until the first null terminator.",
       "codeFile": "cases/visible/basic_word.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "string with spaces",
-      "displayInput": "s = \"fw prep lab\"",
-      "displayExpect": "11",
+      "displayInput": "const char *input = \"fw prep lab\";\nsize_t got = strlen(input);",
+      "displayExpect": "got = 11",
       "explanation": "Whitespace is still a normal byte.",
       "codeFile": "cases/visible/with_spaces.c",
       "weight": 1,
@@ -57,8 +57,8 @@
     },
     {
       "name": "embedded null byte",
-      "displayInput": "{'a','b','\\0','z','z','\\0'}",
-      "displayExpect": "2",
+      "displayInput": "const char input[] = {'a', 'b', '\\0', 'z', 'z', '\\0'};\nsize_t got = strlen(input);",
+      "displayExpect": "got = 2",
       "explanation": "Traversal must stop at the first null byte.",
       "codeFile": "cases/visible/embedded_null.c",
       "weight": 1,

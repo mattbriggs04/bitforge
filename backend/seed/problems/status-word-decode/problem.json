@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "all clear",
-      "displayInput": "word=0",
-      "displayExpect": "no flags, subsystem 0, error 0",
+      "displayInput": "status_t out;\ndecode_status(0, &out);",
+      "displayExpect": "out.ready = false\nout.degraded = false\nout.fault = false\nout.subsystem = 0\nout.error_code = 0\nstatus_faulted(0) = false",
       "explanation": "Zero input should decode to default values.",
       "codeFile": "cases/visible/all_clear.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "extract fields",
-      "displayInput": "ready, degraded, subsystem 9, error 18",
-      "displayExpect": "matching decoded fields",
+      "displayInput": "uint16_t word = (uint16_t)(1u | (1u << 1) | (9u << 4) | (18u << 8));\nstatus_t out;\ndecode_status(word, &out);",
+      "displayExpect": "out.ready = true\nout.degraded = true\nout.fault = false\nout.subsystem = 9\nout.error_code = 18",
       "explanation": "Checks basic masks and shifts.",
       "codeFile": "cases/visible/extract_fields.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "fault classification",
-      "displayInput": "fault bit set",
-      "displayExpect": "status_faulted=true",
+      "displayInput": "uint16_t word = (uint16_t)(1u << 2);\nstatus_t out;\ndecode_status(word, &out);",
+      "displayExpect": "out.fault = true\nstatus_faulted(word) = true",
       "explanation": "Faulted is a derived predicate.",
       "codeFile": "cases/visible/fault_classification.c",
       "weight": 1,

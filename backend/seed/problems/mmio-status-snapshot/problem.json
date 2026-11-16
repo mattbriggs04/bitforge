@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "all clear",
-      "displayInput": "status=0",
-      "displayExpect": "no flags and clear mask 0",
+      "displayInput": "volatile uint32_t status = 0;\nvolatile uint32_t clear = 0xFFFFFFFFu;\nstatus_snapshot_t out = {0};\nint rc = read_status(&status, &clear, &out);",
+      "displayExpect": "rc = 0\nout.ready = false\nout.fault = false\nout.overrun = false\nout.mode = 0\nout.error_code = 0\nclear = 0x00000000",
       "explanation": "Zero status should decode to defaults.",
       "codeFile": "cases/visible/all_clear.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "decode fields",
-      "displayInput": "ready, fault, mode 5, error 0x2a",
-      "displayExpect": "snapshot fields match",
+      "displayInput": "volatile uint32_t status = 1u | 2u | (5u << 4) | (0x2Au << 8);\nvolatile uint32_t clear = 0;\nstatus_snapshot_t out = {0};\nint rc = read_status(&status, &clear, &out);",
+      "displayExpect": "rc = 0\nout.ready = true\nout.fault = true\nout.overrun = false\nout.mode = 5\nout.error_code = 42  // 0x2A\nclear = 0x00000002",
       "explanation": "Masks and shifts extract each register field.",
       "codeFile": "cases/visible/decode_fields.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "acknowledge clearable flags",
-      "displayInput": "fault and overrun set",
-      "displayExpect": "clear register gets W1C mask",
+      "displayInput": "volatile uint32_t status = 2u | 4u | (7u << 4) | (0x11u << 8);\nvolatile uint32_t clear = 0;\nstatus_snapshot_t out = {0};\nint rc = read_status(&status, &clear, &out);",
+      "displayExpect": "rc = 0\nout.ready = false\nout.fault = true\nout.overrun = true\nout.mode = 7\nout.error_code = 17  // 0x11\nclear = 0x00000006",
       "explanation": "Only clearable bits should be acknowledged.",
       "codeFile": "cases/visible/ack_clearable_flags.c",
       "weight": 1,

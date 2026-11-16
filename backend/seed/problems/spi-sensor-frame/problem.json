@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "valid channel zero",
-      "displayInput": "A5 00 12 34 83",
-      "displayExpect": "channel=0, fault=false, value=0x1234",
+      "displayInput": "uint8_t rx[] = {0xA5u, 0x00u, 0x12u, 0x34u, 0x83u};\nstruct spi_sample out = {9, true, 0xFFFFu};\nint rc = parse_spi_sensor(rx, sizeof(rx), &out);",
+      "displayExpect": "rc = 0\nout.channel = 0\nout.fault = false\nout.value = 4660  // 0x1234",
       "explanation": "Baseline valid SPI frame.",
       "codeFile": "cases/visible/valid_channel_zero.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "fault bit set",
-      "displayInput": "status bit 7 set",
-      "displayExpect": "fault=true",
+      "displayInput": "uint8_t rx[] = {0xA5u, 0x85u, 0x00u, 0x2Au, 0x0Au};\nstruct spi_sample out = {0, false, 0};\nint rc = parse_spi_sensor(rx, sizeof(rx), &out);",
+      "displayExpect": "rc = 0\nout.channel = 5\nout.fault = true\nout.value = 42  // 0x002A",
       "explanation": "Status bits need masking.",
       "codeFile": "cases/visible/fault_bit_set.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "bad checksum",
-      "displayInput": "checksum mismatch",
-      "displayExpect": "-4",
+      "displayInput": "uint8_t rx[] = {0xA5u, 0x01u, 0x00u, 0x10u, 0x00u};\nstruct spi_sample out = {7, true, 0xEEEEu};\nint rc = parse_spi_sensor(rx, sizeof(rx), &out);",
+      "displayExpect": "rc = -4\nout.channel = 7\nout.fault = true\nout.value = 0xEEEE",
       "explanation": "Reject corrupted frames.",
       "codeFile": "cases/visible/bad_checksum.c",
       "weight": 1,

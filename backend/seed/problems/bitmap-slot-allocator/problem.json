@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "fresh allocator",
-      "displayInput": "init",
-      "displayExpect": "used=0, all slots free",
+      "displayInput": "slots_t slots;\nslots_init(&slots);",
+      "displayExpect": "slots_used_count(&slots) = 0\nslots_is_used(&slots, i) = false for every i in [0, 31]",
       "explanation": "Initialization clears every allocation bit.",
       "codeFile": "cases/visible/fresh_allocator.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "allocates lowest slots",
-      "displayInput": "allocate three slots",
-      "displayExpect": "0, 1, 2",
+      "displayInput": "slots_t slots;\nslots_init(&slots);\nint a = slots_alloc(&slots);\nint b = slots_alloc(&slots);\nint c = slots_alloc(&slots);",
+      "displayExpect": "a = 0\nb = 1\nc = 2\nslots_is_used(&slots, 0) = true\nslots_is_used(&slots, 1) = true\nslots_is_used(&slots, 2) = true\nslots_used_count(&slots) = 3",
       "explanation": "First-fit should return the lowest free index.",
       "codeFile": "cases/visible/allocates_lowest_slots.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "free and reuse",
-      "displayInput": "allocate 0..2, free 1, allocate",
-      "displayExpect": "slot 1 reused",
+      "displayInput": "slots_t slots;\nslots_init(&slots);\n(void)slots_alloc(&slots);\n(void)slots_alloc(&slots);\n(void)slots_alloc(&slots);\nslots_free(&slots, 1);\nint reused = slots_alloc(&slots);",
+      "displayExpect": "reused = 1\nslots_used_count(&slots) = 3",
       "explanation": "Freeing clears the corresponding bitmap bit.",
       "codeFile": "cases/visible/free_and_reuse.c",
       "weight": 1,

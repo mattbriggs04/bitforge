@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "starts at zero",
-      "displayInput": "reset",
-      "displayExpect": "count=0",
+      "displayInput": "counter_reset(4);",
+      "displayExpect": "counter_get() = 0",
       "explanation": "Reset should clear static state.",
       "codeFile": "cases/visible/starts_at_zero.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "increment to max",
-      "displayInput": "max=3, four increments",
-      "displayExpect": "count stays 3",
+      "displayInput": "counter_reset(3);\ncounter_inc();\ncounter_inc();\ncounter_inc();\ncounter_inc();",
+      "displayExpect": "counter_get() = 3",
       "explanation": "Counter saturates at configured max.",
       "codeFile": "cases/visible/increment_to_max.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "decrement at zero",
-      "displayInput": "decrement empty counter",
-      "displayExpect": "count stays 0",
+      "displayInput": "counter_reset(3);\ncounter_dec();",
+      "displayExpect": "counter_get() = 0",
       "explanation": "Unsigned counters must not underflow.",
       "codeFile": "cases/visible/decrement_at_zero.c",
       "weight": 1,

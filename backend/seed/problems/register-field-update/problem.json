@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "set low field",
-      "displayInput": "reg=0xFFFF0000, mask=0x0000000F, value=5",
-      "displayExpect": "reg=0xFFFF0005",
+      "displayInput": "volatile uint32_t reg = 0xFFFF0000u;\nuint32_t old = reg_update_field(&reg, 0x0000000Fu, 0u, 5u);",
+      "displayExpect": "old = 0xFFFF0000\nreg = 0xFFFF0005",
       "explanation": "Only masked bits should change.",
       "codeFile": "cases/visible/set_low_field.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "replace shifted field",
-      "displayInput": "mask=0x000000F0, shift=4, value=0xA",
-      "displayExpect": "field becomes 0xA",
+      "displayInput": "volatile uint32_t reg = 0x12345678u;\nreg_update_field(&reg, 0x000000F0u, 4u, 0xAu);",
+      "displayExpect": "reg = 0x123456A8",
       "explanation": "Value is shifted into the target field.",
       "codeFile": "cases/visible/replace_shifted_field.c",
       "weight": 1,

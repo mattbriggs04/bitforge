@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "highest priority wins",
-      "displayInput": "tasks: id1 prio1, id2 prio3, id3 prio2",
-      "displayExpect": "schedule returns id2",
+      "displayInput": "rtos_init();\ntask_create(1, 1);\ntask_create(2, 3);\ntask_create(3, 2);",
+      "displayExpect": "task_create(1, 1) = 0\ntask_create(2, 3) = 0\ntask_create(3, 2) = 0\nschedule_next() = 2",
       "explanation": "Higher numeric priority runs first.",
       "codeFile": "cases/visible/highest_priority_wins.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "tie breaks by task id",
-      "displayInput": "two ready tasks at same priority",
-      "displayExpect": "lower id runs first",
+      "displayInput": "rtos_init();\ntask_create(6, 2);\ntask_create(4, 2);\ntask_create(5, 2);",
+      "displayExpect": "schedule_next() = 4",
       "explanation": "Deterministic tie-breaker for the simulator.",
       "codeFile": "cases/visible/tie_breaks_by_task_id.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "delay blocks task",
-      "displayInput": "delay highest priority task by 2 ticks",
-      "displayExpect": "lower priority runs until delay expires",
+      "displayInput": "rtos_init();\ntask_create(1, 1);\ntask_create(2, 5);\ntask_delay(2, 2);\nint first = schedule_next();\nrtos_tick();\nint second = schedule_next();\nrtos_tick();\nint third = schedule_next();",
+      "displayExpect": "first = 1\nsecond = 1\nthird = 2",
       "explanation": "Blocked tasks are not schedulable.",
       "codeFile": "cases/visible/delay_blocks_task.c",
       "weight": 1,

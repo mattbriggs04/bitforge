@@ -31,8 +31,8 @@
   "visibleCases": [
     {
       "name": "size locks once",
-      "displayInput": "init then size",
-      "displayExpect": "size=0 with one balanced critical section",
+      "displayInput": "irq_ring_t rb;\nirq_ring_init(&rb);\ntest_reset_lock_stats();\nsize_t size = irq_ring_size(&rb);",
+      "displayExpect": "size = 0\ntest_lock_enters() = 1\ntest_lock_exits() = 1\ntest_lock_depth() = 0\ntest_lock_errors() = 0",
       "explanation": "Main-loop snapshots must be protected.",
       "codeFile": "cases/visible/size_locks_once.c",
       "weight": 1,
@@ -40,8 +40,8 @@
     },
     {
       "name": "isr push then pop",
-      "displayInput": "push 0x11,0x22 from ISR; pop twice",
-      "displayExpect": "0x11 then 0x22",
+      "displayInput": "irq_ring_t rb;\nirq_ring_init(&rb);\ntest_reset_lock_stats();\nbool a = irq_ring_push_isr(&rb, 0x11);\nbool b = irq_ring_push_isr(&rb, 0x22);\nuint8_t out1 = 0;\nuint8_t out2 = 0;\nbool p1 = irq_ring_pop(&rb, &out1);\nbool p2 = irq_ring_pop(&rb, &out2);",
+      "displayExpect": "a = true\nb = true\np1 = true\np2 = true\nout1 = 0x11\nout2 = 0x22\nISR pushes enter no critical sections\ntest_lock_enters() = 2\ntest_lock_exits() = 2\ntest_lock_depth() = 0\ntest_lock_errors() = 0",
       "explanation": "ISR producer does not lock; main-loop pop does.",
       "codeFile": "cases/visible/isr_push_then_pop.c",
       "weight": 1,
@@ -49,8 +49,8 @@
     },
     {
       "name": "full buffer rejects push",
-      "displayInput": "push capacity + 1 bytes",
-      "displayExpect": "last push returns false",
+      "displayInput": "irq_ring_t rb;\nirq_ring_init(&rb);\nbool ok = true;\nfor (uint8_t i = 0; i < IRQ_RING_CAPACITY; i++) {\n    ok = ok && irq_ring_push_isr(&rb, (uint8_t)(i + 1));\n}\nbool overflow = irq_ring_push_isr(&rb, 99);\ntest_reset_lock_stats();\nsize_t size = irq_ring_size(&rb);",
+      "displayExpect": "All eight initial pushes return true\noverflow = false\nsize = 8\ntest_lock_enters() = 1\ntest_lock_exits() = 1\ntest_lock_errors() = 0",
       "explanation": "The fixed buffer cannot overwrite unread data.",
       "codeFile": "cases/visible/full_rejects_push.c",
       "weight": 1,
@@ -58,8 +58,8 @@
     },
     {
       "name": "wrap-around fifo",
-      "displayInput": "push, drain, refill across the end",
-      "displayExpect": "logical FIFO order is preserved",
+      "displayInput": "irq_ring_t rb;\nirq_ring_init(&rb);\nfor (int i = 0; i < 6; i++) {\n    irq_ring_push_isr(&rb, i);\n}\nuint8_t drop = 0;\nirq_ring_pop(&rb, &drop);\nirq_ring_pop(&rb, &drop);\nirq_ring_pop(&rb, &drop);\nirq_ring_push_isr(&rb, 100);\nirq_ring_push_isr(&rb, 101);\nirq_ring_push_isr(&rb, 102);\nuint8_t popped[6];\nfor (int i = 0; i < 6; i++) {\n    irq_ring_pop(&rb, &popped[i]);\n}",
+      "displayExpect": "All six final pops return true\npopped = {3, 4, 5, 100, 101, 102}\nirq_ring_size(&rb) = 0\ntest_lock_errors() = 0",
       "explanation": "Head and tail must wrap independently.",
       "codeFile": "cases/visible/wraparound_fifo.c",
       "weight": 1,

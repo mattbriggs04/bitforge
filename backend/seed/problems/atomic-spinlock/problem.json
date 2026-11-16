@@ -31,8 +31,8 @@
   "visibleCases": [
     {
       "name": "initial state",
-      "displayInput": "init",
-      "displayExpect": "unlocked with owner 0",
+      "displayInput": "spinlock_t lock;\nspinlock_init(&lock);",
+      "displayExpect": "spinlock_is_locked(&lock) = false\nspinlock_owner(&lock) = 0",
       "explanation": "Initialization clears both lock state and owner.",
       "codeFile": "cases/visible/initial_state.c",
       "weight": 1,
@@ -40,8 +40,8 @@
     },
     {
       "name": "try lock succeeds",
-      "displayInput": "owner 42 acquires",
-      "displayExpect": "locked=true, owner=42, one CAS",
+      "displayInput": "spinlock_t lock;\nspinlock_init(&lock);\ntest_reset_atomic();\nbool ok = spinlock_try_lock(&lock, 42);",
+      "displayExpect": "ok = true\nspinlock_is_locked(&lock) = true\nspinlock_owner(&lock) = 42\ntest_cas_calls() = 1",
       "explanation": "Acquisition must go through the atomic hook.",
       "codeFile": "cases/visible/try_lock_succeeds.c",
       "weight": 1,
@@ -49,8 +49,8 @@
     },
     {
       "name": "double lock fails",
-      "displayInput": "owner 1 acquires, owner 2 tries",
-      "displayExpect": "owner remains 1",
+      "displayInput": "spinlock_t lock;\nspinlock_init(&lock);\ntest_reset_atomic();\nbool first = spinlock_try_lock(&lock, 1);\nbool second = spinlock_try_lock(&lock, 2);",
+      "displayExpect": "first = true\nsecond = false\nspinlock_is_locked(&lock) = true\nspinlock_owner(&lock) = 1\ntest_cas_calls() = 2",
       "explanation": "A held lock cannot be acquired by another owner.",
       "codeFile": "cases/visible/double_lock_fails.c",
       "weight": 1,
@@ -58,8 +58,8 @@
     },
     {
       "name": "owner unlocks",
-      "displayInput": "owner 7 locks then unlocks",
-      "displayExpect": "lock becomes available",
+      "displayInput": "spinlock_t lock;\nspinlock_init(&lock);\nbool locked = spinlock_try_lock(&lock, 7);\nbool unlocked = spinlock_unlock(&lock, 7);\nbool relocked = spinlock_try_lock(&lock, 8);",
+      "displayExpect": "locked = true\nunlocked = true\nrelocked = true\nspinlock_is_locked(&lock) = true\nspinlock_owner(&lock) = 8",
       "explanation": "Only the owner can release the lock.",
       "codeFile": "cases/visible/owner_unlocks.c",
       "weight": 1,

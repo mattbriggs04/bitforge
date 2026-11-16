@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "valid short frame",
-      "displayInput": "A5 00 03 11 22 33",
-      "displayExpect": "3",
+      "displayInput": "uint8_t frame[] = {0xA5u, 0x00u, 0x03u, 0x11u, 0x22u, 0x33u};\nint rc = frame_payload_len(frame, sizeof(frame));",
+      "displayExpect": "rc = 3",
       "explanation": "Length is a big-endian 16-bit field.",
       "codeFile": "cases/visible/valid_short_frame.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "reject bad sync",
-      "displayInput": "first byte != A5",
-      "displayExpect": "-2",
+      "displayInput": "uint8_t frame[] = {0x5Au, 0x00u, 0x01u, 0x99u};\nint rc = frame_payload_len(frame, sizeof(frame));",
+      "displayExpect": "rc = -2",
       "explanation": "Sync must be checked before parsing length.",
       "codeFile": "cases/visible/reject_bad_sync.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "reject truncated payload",
-      "displayInput": "declared len=4, only 3 payload bytes",
-      "displayExpect": "-3",
+      "displayInput": "uint8_t frame[] = {0xA5u, 0x00u, 0x04u, 0x11u, 0x22u, 0x33u};\nint rc = frame_payload_len(frame, sizeof(frame));",
+      "displayExpect": "rc = -3",
       "explanation": "Declared payload length must fit inside the buffer.",
       "codeFile": "cases/visible/reject_truncated_payload.c",
       "weight": 1,

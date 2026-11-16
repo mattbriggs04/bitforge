@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "basic sequential alloc",
-      "displayInput": "pool=32, alloc 8 then 4",
-      "displayExpect": "non-null increasing pointers",
+      "displayInput": "uint8_t pool[32];\npool_init(pool, sizeof(pool));\nvoid *a = alloc_aligned(8, 1);\nvoid *b = alloc_aligned(4, 1);",
+      "displayExpect": "a = pool\nb = pool + 8\npool_remaining() = 20",
       "explanation": "Bump pointer advances monotonically.",
       "codeFile": "cases/visible/basic_sequential_alloc.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "alignment padding",
-      "displayInput": "alloc 1 byte aligned to 8",
-      "displayExpect": "returned pointer is 8-byte aligned",
+      "displayInput": "uint8_t raw[40];\npool_init(raw + 1, 32);\nvoid *a = alloc_aligned(1, 8);",
+      "displayExpect": "a != NULL\n(uintptr_t)a % 8 = 0",
       "explanation": "Allocator may skip bytes to satisfy alignment.",
       "codeFile": "cases/visible/alignment_padding.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "out of memory",
-      "displayInput": "pool=8, alloc 16",
-      "displayExpect": "NULL",
+      "displayInput": "uint8_t pool[8];\npool_init(pool, sizeof(pool));\nvoid *a = alloc_aligned(16, 1);",
+      "displayExpect": "a = NULL\npool_remaining() = 8",
       "explanation": "Failed allocations must not advance the cursor.",
       "codeFile": "cases/visible/out_of_memory.c",
       "weight": 1,

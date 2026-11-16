@@ -182,11 +182,20 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline-offs
 .problem-pane-section.markdown-body > h2 { font: 10px var(--font-mono); color: var(--text-subtle); letter-spacing: .08em; margin: 0 0 18px; }
 .markdown-body table { width: 100%; border-collapse: collapse; }
 .markdown-body td, .markdown-body th { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); }
-.sample-grid, .asset-grid { display: grid; gap: 16px; }
-.sample-card h3, .asset-card h3 { font: 11px var(--font-mono); color: var(--text); margin-bottom: 12px; }
-.sample-card p { font: 11px/1.8 var(--font-mono); overflow-wrap: anywhere; }
-.sample-card p + p { margin-top: 6px; }
-.sample-card strong { font-weight: 500; color: var(--text); margin-right: 8px; }
+.asset-grid { display: grid; gap: 16px; }
+.asset-card h3 { font: 11px var(--font-mono); color: var(--text); margin-bottom: 12px; }
+.sample-list { display: grid; gap: 24px; list-style: none; padding: 0; margin: 0; }
+.sample-card { min-width: 0; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--bg); overflow: hidden; }
+.sample-header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--surface-muted); }
+.sample-number { flex-shrink: 0; padding: 3px 6px; border: 1px solid var(--line-strong); border-radius: 3px; font: 10px/1.4 var(--font-mono); color: var(--text-muted); }
+.sample-header h3 { margin: 0; font-size: 13px; font-weight: 550; letter-spacing: -.01em; }
+.sample-details { display: grid; gap: 18px; margin: 0; padding: 16px; }
+.sample-details dt { margin-bottom: 8px; font: 10px/1.4 var(--font-mono); color: var(--text-subtle); }
+.sample-details dd { margin: 0; }
+.sample-details pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); font: 11px/1.8 var(--font-mono); }
+.sample-details code { font: inherit; }
+.sample-explanation { border-top: 1px solid var(--line); padding: 12px 16px; }
+.sample-explanation.markdown-body { font-size: 12px; }
 .asset-meta { font: 10px var(--font-mono); color: var(--text-subtle); }
 .solution-panel summary { font-size: 12px; color: var(--text-muted); }
 .solution-body { padding-top: 16px; }

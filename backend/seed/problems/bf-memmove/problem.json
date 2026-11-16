@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "non-overlapping copy",
-      "displayInput": "src=[1 2 3 4], dest=[0 0 0 0], n=4",
-      "displayExpect": "dest matches src",
+      "displayInput": "unsigned char src[] = {1, 2, 3, 4};\nunsigned char dst[] = {0, 0, 0, 0};\nvoid *ret = memmove(dst, src, sizeof(src));",
+      "displayExpect": "ret = dst\ndst = {1, 2, 3, 4}",
       "explanation": "Baseline behavior should match memcpy when no overlap.",
       "codeFile": "cases/visible/no_overlap.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "forward overlap",
-      "displayInput": "dest=buf+2, src=buf, n=5",
-      "displayExpect": "bytes shifted right without corruption",
+      "displayInput": "unsigned char buf[] = {1, 2, 3, 4, 5, 6, 7, 8};\nvoid *ret = memmove(buf + 2, buf, 5);",
+      "displayExpect": "ret = buf + 2\nbuf = {1, 2, 1, 2, 3, 4, 5, 8}",
       "explanation": "When destination starts inside source, copy backward.",
       "codeFile": "cases/visible/overlap_forward.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "backward overlap",
-      "displayInput": "dest=buf, src=buf+3, n=4",
-      "displayExpect": "bytes shifted left without corruption",
+      "displayInput": "unsigned char buf[] = {10, 11, 12, 13, 14, 15, 16, 17};\nvoid *ret = memmove(buf, buf + 3, 4);",
+      "displayExpect": "ret = buf\nbuf = {13, 14, 15, 16, 14, 15, 16, 17}",
       "explanation": "When destination is before source, forward copy is safe.",
       "codeFile": "cases/visible/overlap_backward.c",
       "weight": 1,
@@ -57,8 +57,8 @@
     },
     {
       "name": "zero length",
-      "displayInput": "n=0",
-      "displayExpect": "buffer unchanged and return pointer preserved",
+      "displayInput": "unsigned char buf[] = {9, 8, 7, 6};\nvoid *ret = memmove(buf + 1, buf, 0);",
+      "displayExpect": "ret = buf + 1\nbuf = {9, 8, 7, 6}",
       "explanation": "Boundary case; no bytes should be touched.",
       "codeFile": "cases/visible/zero_length.c",
       "weight": 1,

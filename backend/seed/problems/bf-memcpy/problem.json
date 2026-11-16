@@ -31,8 +31,8 @@
   "visibleCases": [
     {
       "name": "zero length copy",
-      "displayInput": "dest=[11 22 33], src=[AA BB CC], n=0",
-      "displayExpect": "dest unchanged, return dest",
+      "displayInput": "unsigned char src[] = {0xAA, 0xBB, 0xCC};\nunsigned char dst[] = {0x11, 0x22, 0x33};\nvoid *ret = memcpy(dst, src, 0);",
+      "displayExpect": "ret = dst\ndst = {0x11, 0x22, 0x33}",
       "explanation": "Copying zero bytes should be a no-op.",
       "codeFile": "cases/visible/zero_length.c",
       "weight": 1,
@@ -40,8 +40,8 @@
     },
     {
       "name": "basic 4 byte copy",
-      "displayInput": "dest=[00 00 00 00], src=[DE AD BE EF], n=4",
-      "displayExpect": "dest becomes [DE AD BE EF]",
+      "displayInput": "unsigned char src[] = {0xDE, 0xAD, 0xBE, 0xEF};\nunsigned char dst[] = {0x00, 0x00, 0x00, 0x00};\nvoid *ret = memcpy(dst, src, sizeof(src));",
+      "displayExpect": "ret = dst\ndst = {0xDE, 0xAD, 0xBE, 0xEF}",
       "explanation": "Simple contiguous memory copy.",
       "codeFile": "cases/visible/basic_copy.c",
       "weight": 1,
@@ -49,8 +49,8 @@
     },
     {
       "name": "binary data with zeros",
-      "displayInput": "src includes 0x00 bytes",
-      "displayExpect": "all bytes copied exactly",
+      "displayInput": "unsigned char src[] = {0x00, 0x10, 0x00, 0x7F, 0x00};\nunsigned char dst[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF};\nvoid *ret = memcpy(dst, src, sizeof(src));",
+      "displayExpect": "ret = dst\ndst = {0x00, 0x10, 0x00, 0x7F, 0x00}",
       "explanation": "Memory copy is not string-aware.",
       "codeFile": "cases/visible/copy_with_zero_bytes.c",
       "weight": 1,
@@ -58,8 +58,8 @@
     },
     {
       "name": "partial copy preserves tail",
-      "displayInput": "n=3 over 6-byte destination",
-      "displayExpect": "first 3 overwritten, remaining bytes unchanged",
+      "displayInput": "unsigned char src[] = {1, 2, 3, 4, 5, 6};\nunsigned char dst[] = {9, 9, 9, 9, 9, 9};\nvoid *ret = memcpy(dst, src, 3);",
+      "displayExpect": "ret = dst\ndst = {1, 2, 3, 9, 9, 9}",
       "explanation": "Only `n` bytes may be touched.",
       "codeFile": "cases/visible/partial_copy.c",
       "weight": 1,

@@ -41,8 +41,8 @@
   "visibleCases": [
     {
       "name": "stable low has no edges",
-      "displayInput": "initial low, then 16 low samples",
-      "displayExpect": "state low, no rising/falling events",
+      "displayInput": "debounce_button_t db;\ndebounce_init(&db, 0);\nfor (int i = 0; i < 16; i++) {\n    debounce_timer_isr(&db, 0);\n}",
+      "displayExpect": "db.stable_state = 0\ndebounce_take_rising_edge(&db) = 0\ndebounce_take_falling_edge(&db) = 0",
       "explanation": "Noisy logic should not trigger when steady low.",
       "codeFile": "cases/visible/stable_low_no_edges.c",
       "weight": 1,
@@ -50,8 +50,8 @@
     },
     {
       "name": "bouncy press emits one rise",
-      "displayInput": "low-to-high with bounce",
-      "displayExpect": "one rising edge",
+      "displayInput": "debounce_button_t db;\ndebounce_init(&db, 0);\nuint8_t seq[] = {0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1};\nint rises = 0;\nfor (size_t i = 0; i < sizeof(seq); i++) {\n    debounce_timer_isr(&db, seq[i]);\n    rises += debounce_take_rising_edge(&db);\n}",
+      "displayExpect": "db.stable_state = 1\nrises = 1\ndebounce_take_falling_edge(&db) = 0",
       "explanation": "Requires 8 stable high samples before accepting press.",
       "codeFile": "cases/visible/bouncy_press_single_rise.c",
       "weight": 1,
@@ -59,8 +59,8 @@
     },
     {
       "name": "bouncy release emits one fall",
-      "displayInput": "high-to-low with bounce",
-      "displayExpect": "one falling edge",
+      "displayInput": "debounce_button_t db;\ndebounce_init(&db, 1);\nuint8_t seq[] = {1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0};\nint falls = 0;\nfor (size_t i = 0; i < sizeof(seq); i++) {\n    debounce_timer_isr(&db, seq[i]);\n    falls += debounce_take_falling_edge(&db);\n}",
+      "displayExpect": "db.stable_state = 0\nfalls = 1\ndebounce_take_rising_edge(&db) = 0",
       "explanation": "Requires 8 stable low samples before accepting release.",
       "codeFile": "cases/visible/bouncy_release_single_fall.c",
       "weight": 1,
@@ -68,8 +68,8 @@
     },
     {
       "name": "held high does not repeat rise",
-      "displayInput": "continuous high after transition",
-      "displayExpect": "single rising edge only",
+      "displayInput": "debounce_button_t db;\ndebounce_init(&db, 0);\nint rises = 0;\nfor (int i = 0; i < 20; i++) {\n    debounce_timer_isr(&db, 1);\n    rises += debounce_take_rising_edge(&db);\n}",
+      "displayExpect": "db.stable_state = 1\nrises = 1\ndebounce_take_falling_edge(&db) = 0",
       "explanation": "Edge events should fire on state transition, not continuously.",
       "codeFile": "cases/visible/hold_high_no_repeat_edges.c",
       "weight": 1,

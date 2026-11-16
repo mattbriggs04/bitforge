@@ -30,27 +30,27 @@
   "visibleCases": [
     {
       "name": "valid command",
-      "displayInput": "8-byte payload",
-      "displayExpect": "torque, speed, flags, counter decoded",
-      "explanation": "Baseline mixed-endian decode.",
+      "displayInput": "uint8_t payload[] = {0x34u, 0x12u, 0x01u, 0xF4u, 0x01u, 0x7Au, 0x00u, 0xA8u};\ncan_control_t out = {0};\nint rc = parse_can_control(payload, sizeof(payload), &out);",
+      "displayExpect": "rc = 0\nout.torque = 4660  // 0x1234\nout.speed = 500\nout.armed = true\nout.fault = false\nout.counter = 122  // 0x7A",
+      "explanation": "The torque bytes 34 12 decode to 0x1234 (4660) in little-endian order; speed bytes 01 F4 decode to 500 in big-endian order. The XOR of bytes 0–6 is 0xA8.",
       "codeFile": "cases/visible/valid_command.c",
       "weight": 1,
       "sortOrder": 10
     },
     {
       "name": "negative torque",
-      "displayInput": "little-endian int16 torque",
-      "displayExpect": "negative torque preserved",
-      "explanation": "Signed 16-bit values need correct reconstruction.",
+      "displayInput": "uint8_t payload[] = {0x85u, 0xFFu, 0x00u, 0x64u, 0x00u, 0x02u, 0x00u, 0x1Cu};\ncan_control_t out = {0};\nint rc = parse_can_control(payload, sizeof(payload), &out);",
+      "displayExpect": "rc = 0\nout.torque = -123\nout.speed = 100\nout.armed = false\nout.fault = false\nout.counter = 2",
+      "explanation": "The little-endian torque word is 0xFF85, which represents -123 as a signed 16-bit value. The checksum is 0x1C.",
       "codeFile": "cases/visible/negative_torque.c",
       "weight": 1,
       "sortOrder": 20
     },
     {
       "name": "bad checksum",
-      "displayInput": "checksum mismatch",
-      "displayExpect": "-3",
-      "explanation": "Reject corrupted CAN payloads.",
+      "displayInput": "uint8_t payload[] = {0x34u, 0x12u, 0x01u, 0xF4u, 0x01u, 0x7Au, 0x00u, 0x00u};\ncan_control_t out = {0};\nint rc = parse_can_control(payload, sizeof(payload), &out);",
+      "displayExpect": "rc = -3",
+      "explanation": "The payload requires checksum 0xA8, but its final byte is 0x00, so parsing returns -3. No decoded output fields are specified for this error.",
       "codeFile": "cases/visible/bad_checksum.c",
       "weight": 1,
       "sortOrder": 30

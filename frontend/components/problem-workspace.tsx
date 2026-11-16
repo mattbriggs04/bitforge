@@ -155,14 +155,27 @@ export function ProblemWorkspace({ problem }: Props) {
           {problem.samples.length > 0 ? (
             <div className="problem-pane-section">
               <h2>Examples</h2>
-              <div className="sample-grid">{problem.samples.map((sample) => (
-                <article key={sample.name} className="sample-card">
-                  <h3>{sample.name}</h3>
-                  <p><strong>Input</strong> {sample.input}</p>
-                  <p><strong>Expected</strong> {sample.expected}</p>
-                  {sample.explanation ? <p className="sample-explanation"><Markdown inline>{sample.explanation}</Markdown></p> : null}
-                </article>
-              ))}</div>
+              <ol className="sample-list">
+                {problem.samples.map((sample, index) => (
+                  <li key={sample.name} className="sample-card">
+                    <header className="sample-header">
+                      <span className="sample-number">Example {index + 1}</span>
+                      <h3>{sample.name.charAt(0).toUpperCase() + sample.name.slice(1)}</h3>
+                    </header>
+                    <dl className="sample-details">
+                      <div>
+                        <dt>{problem.problemType === "coding" ? "Input (stdin)" : "Input & call"}</dt>
+                        <dd><pre><code>{sample.input}</code></pre></dd>
+                      </div>
+                      <div>
+                        <dt>Expected result</dt>
+                        <dd><pre><code>{sample.expected}</code></pre></dd>
+                      </div>
+                    </dl>
+                    {sample.explanation ? <div className="sample-explanation markdown-body"><Markdown>{sample.explanation}</Markdown></div> : null}
+                  </li>
+                ))}
+              </ol>
             </div>
           ) : null}
 

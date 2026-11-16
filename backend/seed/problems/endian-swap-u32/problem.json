@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "read big endian 16",
-      "displayInput": "bytes=[12 34]",
-      "displayExpect": "0x1234",
+      "displayInput": "uint8_t bytes[] = {0x12u, 0x34u};\nuint16_t value = read_be16(bytes);",
+      "displayExpect": "value = 0x1234",
       "explanation": "Most-significant byte comes first.",
       "codeFile": "cases/visible/read_be16.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "read big endian 32",
-      "displayInput": "bytes=[DE AD BE EF]",
-      "displayExpect": "0xDEADBEEF",
+      "displayInput": "uint8_t bytes[] = {0xDEu, 0xADu, 0xBEu, 0xEFu};\nuint32_t value = read_be32(bytes);",
+      "displayExpect": "value = 0xDEADBEEF",
       "explanation": "All shifts must be performed on a wide unsigned type.",
       "codeFile": "cases/visible/read_be32.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "write little endian 32",
-      "displayInput": "value=0x12345678",
-      "displayExpect": "bytes=[78 56 34 12]",
+      "displayInput": "uint8_t out[] = {0, 0, 0, 0};\nwrite_le32(out, 0x12345678u);",
+      "displayExpect": "out = {0x78, 0x56, 0x34, 0x12}",
       "explanation": "Least-significant byte is stored first.",
       "codeFile": "cases/visible/write_le32.c",
       "weight": 1,

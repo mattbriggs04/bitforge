@@ -52,9 +52,13 @@ Each case object must include:
 
 Display metadata for visible samples:
 
-- `displayInput`
-- `displayExpect`
-- `explanation`
+- `displayInput`: literal arguments and C setup/call sequence, including buffers, lengths, initial state and any prior operations. Use newlines for readable snippets.
+- `displayExpect`: concrete return values and output fields/buffer contents, not a description such as "fields decoded". For addresses, use relationships such as `ret = dst` rather than an invented runtime address.
+- `explanation`: why these specific inputs produce that result. Do not repeat the case name.
+
+The UI numbers and separates each visible example, and renders input and expected result as literal, whitespace-preserving code blocks. These display strings must stay consistent with the referenced visible case snippet; hidden case payloads are never used to populate examples.
+
+For instance, a CAN sample should include the complete eight bytes and `parse_can_control(payload, sizeof(payload), &out)`, then the return code and each decoded field. A phrase such as "8-byte payload" is not a reproducible example.
 
 ## Case Snippet Contract
 

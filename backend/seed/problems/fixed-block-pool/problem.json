@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "fresh pool",
-      "displayInput": "init",
-      "displayExpect": "all blocks available",
+      "displayInput": "pool_t pool;\npool_init(&pool);",
+      "displayExpect": "pool_available(&pool) = 4",
       "explanation": "Initialization resets every block.",
       "codeFile": "cases/visible/fresh_pool.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "allocate all blocks",
-      "displayInput": "alloc four blocks",
-      "displayExpect": "four non-null unique pointers",
+      "displayInput": "pool_t pool;\npool_init(&pool);\nvoid *ptrs[POOL_BLOCKS];\nfor (int i = 0; i < POOL_BLOCKS; i++) {\n    ptrs[i] = pool_alloc(&pool);\n}",
+      "displayExpect": "ptrs[0], ptrs[1], ptrs[2], ptrs[3] are non-NULL and pairwise distinct\npool_available(&pool) = 0",
       "explanation": "Each allocation consumes one block.",
       "codeFile": "cases/visible/allocate_all_blocks.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "free and reuse",
-      "displayInput": "free block 1 then alloc",
-      "displayExpect": "same block reused",
+      "displayInput": "pool_t pool;\npool_init(&pool);\nvoid *a = pool_alloc(&pool);\nvoid *b = pool_alloc(&pool);\npool_free(&pool, b);\nvoid *c = pool_alloc(&pool);",
+      "displayExpect": "a != NULL\nb != NULL\nc = b\npool_available(&pool) = 2",
       "explanation": "Freed blocks should become available.",
       "codeFile": "cases/visible/free_and_reuse.c",
       "weight": 1,

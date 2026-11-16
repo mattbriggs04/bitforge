@@ -30,17 +30,17 @@
   "visibleCases": [
     {
       "name": "single valid frame",
-      "displayInput": "7e 03 10 20 30 1d",
-      "displayExpect": "payload 10 20 30",
-      "explanation": "Baseline streaming parse.",
+      "displayInput": "uart_parser_t parser;\nuart_frame_t frame;\nuart_init(&parser);\nuint8_t stream[] = {0x7Eu, 0x03u, 0x10u, 0x20u, 0x30u, 0x03u};\nbool emitted = false;\nfor (size_t i = 0; i < sizeof(stream); i++) {\n    emitted = uart_feed(&parser, stream[i], &frame);\n}",
+      "displayExpect": "emitted = true on the final byte (0x03)\nframe.len = 3\nframe.payload[0..2] = {0x10, 0x20, 0x30}",
+      "explanation": "The final byte is the checksum: 0x03 ^ 0x10 ^ 0x20 ^ 0x30 = 0x03. The frame is emitted after that byte is fed.",
       "codeFile": "cases/visible/single_valid_frame.c",
       "weight": 1,
       "sortOrder": 10
     },
     {
       "name": "noise before sync",
-      "displayInput": "00 ff 7e 01 42 43",
-      "displayExpect": "payload 42",
+      "displayInput": "uart_parser_t parser;\nuart_frame_t frame;\nuart_init(&parser);\nuint8_t stream[] = {0x00u, 0xFFu, 0x7Eu, 0x01u, 0x42u, 0x43u};\nbool emitted = false;\nfor (size_t i = 0; i < sizeof(stream); i++) {\n    emitted = uart_feed(&parser, stream[i], &frame);\n}",
+      "displayExpect": "emitted = true on the final byte (0x43)\nframe.len = 1\nframe.payload[0] = 0x42",
       "explanation": "Ignore bytes until sync.",
       "codeFile": "cases/visible/noise_before_sync.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "bad checksum resets",
-      "displayInput": "bad frame then good frame",
-      "displayExpect": "only good frame emitted",
+      "displayInput": "uart_parser_t parser;\nuart_frame_t frame;\nuart_init(&parser);\nuint8_t stream[] = {0x7Eu, 0x01u, 0xAAu, 0x00u, 0x7Eu, 0x01u, 0x55u, 0x54u};\nint emitted = 0;\nfor (size_t i = 0; i < sizeof(stream); i++) {\n    if (uart_feed(&parser, stream[i], &frame)) {\n        emitted++;\n    }\n}",
+      "displayExpect": "emitted = 1\nframe.len = 1\nframe.payload[0] = 0x55",
       "explanation": "Parser must recover after checksum failure.",
       "codeFile": "cases/visible/bad_checksum_resets.c",
       "weight": 1,

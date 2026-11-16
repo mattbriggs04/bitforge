@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "positive 12 bit",
-      "displayInput": "value=0x07FF, bits=12",
-      "displayExpect": "2047",
+      "displayInput": "int32_t result = sign_extend(0x07FFu, 12u);",
+      "displayExpect": "result = 2047",
       "explanation": "Positive values should remain positive.",
       "codeFile": "cases/visible/positive_12_bit.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "negative 12 bit",
-      "displayInput": "value=0x0800, bits=12",
-      "displayExpect": "-2048",
+      "displayInput": "int32_t result = sign_extend(0x0800u, 12u);",
+      "displayExpect": "result = -2048",
       "explanation": "The top bit is the sign bit.",
       "codeFile": "cases/visible/negative_12_bit.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "saturating add high",
-      "displayInput": "30000 + 10000",
-      "displayExpect": "INT16_MAX",
+      "displayInput": "int16_t result = saturating_add_i16(30000, 10000);",
+      "displayExpect": "result = 32767  // INT16_MAX",
       "explanation": "Overflow clamps high.",
       "codeFile": "cases/visible/saturating_high.c",
       "weight": 1,

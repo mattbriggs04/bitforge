@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "no errors",
-      "displayInput": "expected equals observed",
-      "displayExpect": "total=0, window_start=0, window_errors=0",
+      "displayInput": "error_window_t result = analyze_errors(0x12345678u, 0x12345678u);",
+      "displayExpect": "result.total_errors = 0\nresult.window_start = 0\nresult.window_errors = 0",
       "explanation": "Identical words have no bit errors.",
       "codeFile": "cases/visible/no_errors.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "single byte burst",
-      "displayInput": "low byte differs in all bits",
-      "displayExpect": "window_start=0, window_errors=8",
+      "displayInput": "error_window_t result = analyze_errors(0x00000000u, 0x000000FFu);",
+      "displayExpect": "result.total_errors = 8\nresult.window_start = 0\nresult.window_errors = 8",
       "explanation": "The first byte is the worst window.",
       "codeFile": "cases/visible/single_byte_burst.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "higher window",
-      "displayInput": "bits 12..19 differ",
-      "displayExpect": "window_start=12",
+      "displayInput": "uint32_t mask = 0xFFu << 12;\nerror_window_t result = analyze_errors(0u, mask);",
+      "displayExpect": "result.total_errors = 8\nresult.window_start = 12\nresult.window_errors = 8",
       "explanation": "Worst window is not necessarily byte-aligned.",
       "codeFile": "cases/visible/higher_window.c",
       "weight": 1,

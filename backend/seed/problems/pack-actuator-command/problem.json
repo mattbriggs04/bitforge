@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "pack positive command",
-      "displayInput": "id=3 mode=5 enable=true setpoint=120",
-      "displayExpect": "fields occupy the specified bits",
+      "displayInput": "uint32_t word = pack_command(3, 5, true, 120);",
+      "displayExpect": "word = 0x000078D3",
       "explanation": "Basic field packing.",
       "codeFile": "cases/visible/pack_positive_command.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "unpack negative setpoint",
-      "displayInput": "word with 12-bit -7 setpoint",
-      "displayExpect": "setpoint=-7",
+      "displayInput": "uint32_t word = 2u | (1u << 4) | (1u << 7) | (0xFF9u << 8);\ncommand_t out;\nunpack_command(word, &out);",
+      "displayExpect": "out.actuator_id = 2\nout.mode = 1\nout.enabled = true\nout.setpoint = -7",
       "explanation": "Packed signed values must be sign-extended.",
       "codeFile": "cases/visible/unpack_negative_setpoint.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "round trip",
-      "displayInput": "pack then unpack",
-      "displayExpect": "decoded fields match inputs",
+      "displayInput": "uint32_t word = pack_command(9, 6, false, -123);\ncommand_t out;\nunpack_command(word, &out);",
+      "displayExpect": "out.actuator_id = 9\nout.mode = 6\nout.enabled = false\nout.setpoint = -123",
       "explanation": "Encoder and decoder should agree.",
       "codeFile": "cases/visible/round_trip.c",
       "weight": 1,

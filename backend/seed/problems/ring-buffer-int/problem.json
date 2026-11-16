@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "init and empty pop",
-      "displayInput": "init then pop",
-      "displayExpect": "pop=false, size=0",
+      "displayInput": "ring_t rb;\nring_init(&rb);\nint out = -1;\nbool popped = ring_pop(&rb, &out);",
+      "displayExpect": "popped = false\nout = -1\nring_size(&rb) = 0",
       "explanation": "Fresh buffers start empty.",
       "codeFile": "cases/visible/init_empty.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "basic fifo push pop",
-      "displayInput": "push 10,20 then pop twice",
-      "displayExpect": "10 then 20",
+      "displayInput": "ring_t rb;\nring_init(&rb);\nbool a = ring_push(&rb, 10);\nbool b = ring_push(&rb, 20);\nint out1 = 0;\nint out2 = 0;\nbool p1 = ring_pop(&rb, &out1);\nbool p2 = ring_pop(&rb, &out2);",
+      "displayExpect": "a = true\nb = true\np1 = true\np2 = true\nout1 = 10\nout2 = 20\nring_size(&rb) = 0",
       "explanation": "Order must stay FIFO.",
       "codeFile": "cases/visible/push_pop_fifo.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "fill then overflow",
-      "displayInput": "push RING_CAPACITY + 1 values",
-      "displayExpect": "last push fails",
+      "displayInput": "ring_t rb;\nring_init(&rb);\nbool ok = true;\nfor (int i = 0; i < RING_CAPACITY; i++) {\n    ok = ok && ring_push(&rb, i + 1);\n}\nbool overflow = ring_push(&rb, 99);",
+      "displayExpect": "All eight initial pushes return true\noverflow = false\nring_size(&rb) = 8",
       "explanation": "Buffer cannot exceed fixed capacity.",
       "codeFile": "cases/visible/fill_then_overflow.c",
       "weight": 1,
@@ -57,8 +57,8 @@
     },
     {
       "name": "wrap-around order",
-      "displayInput": "push/pop/push across index wrap",
-      "displayExpect": "logical FIFO order preserved",
+      "displayInput": "ring_t rb;\nring_init(&rb);\nfor (int i = 0; i < 6; i++) {\n    ring_push(&rb, i);\n}\nint drop = 0;\nring_pop(&rb, &drop);\nring_pop(&rb, &drop);\nring_pop(&rb, &drop);\nring_push(&rb, 100);\nring_push(&rb, 101);\nring_push(&rb, 102);\nint popped[6];\nfor (int i = 0; i < 6; i++) {\n    ring_pop(&rb, &popped[i]);\n}",
+      "displayExpect": "All six final pops return true\npopped = {3, 4, 5, 100, 101, 102}\nring_size(&rb) = 0",
       "explanation": "Head/tail wrapping is core behavior.",
       "codeFile": "cases/visible/wraparound.c",
       "weight": 1,

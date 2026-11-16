@@ -30,8 +30,8 @@
   "visibleCases": [
     {
       "name": "set and clear",
-      "displayInput": "set 0x03 then clear 0x01",
-      "displayExpect": "bits=0x02",
+      "displayInput": "event_group_t group;\nevents_init(&group);\nevents_set(&group, 0x03u);\nevents_clear(&group, 0x01u);",
+      "displayExpect": "events_get(&group) = 0x02",
       "explanation": "Basic event-bit manipulation.",
       "codeFile": "cases/visible/set_and_clear.c",
       "weight": 1,
@@ -39,8 +39,8 @@
     },
     {
       "name": "wait any",
-      "displayInput": "bits=0x04 wait mask=0x06 wait_all=false",
-      "displayExpect": "ready",
+      "displayInput": "event_group_t group;\nevents_init(&group);\nevents_set(&group, 0x04u);\nbool ready = events_wait(&group, 0x06u, false, false);",
+      "displayExpect": "ready = true\nevents_get(&group) = 0x04",
       "explanation": "Any matching bit satisfies the wait.",
       "codeFile": "cases/visible/wait_any.c",
       "weight": 1,
@@ -48,8 +48,8 @@
     },
     {
       "name": "wait all",
-      "displayInput": "bits=0x06 wait mask=0x06 wait_all=true",
-      "displayExpect": "ready",
+      "displayInput": "event_group_t group;\nevents_init(&group);\nevents_set(&group, 0x06u);\nbool ready = events_wait(&group, 0x06u, false, true);",
+      "displayExpect": "ready = true\nevents_get(&group) = 0x06",
       "explanation": "All requested bits must be present.",
       "codeFile": "cases/visible/wait_all.c",
       "weight": 1,

@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 25,
-    "focusAreas": ["bitmasks", "resource-allocation", "embedded-c"],
-    "source": "seed"
+    "focusAreas": [
+      "bitmasks",
+      "resource-allocation",
+      "embedded-c"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 25,
+    "objectives": [
+      "Manage 32 fixed resources with a compact allocation bitmap"
+    ],
+    "hints": {
+      "nudge": "Each resource corresponds to one bit; what does a set bit mean?",
+      "approach": "Use the specified allocation order when selecting a free bit. Validate release indices before shifting, and reason separately about an exhausted bitmap and an already-free slot."
+    }
   },
   "tags": ["bitwise", "bitmap", "allocator", "embedded"],
   "templates": [

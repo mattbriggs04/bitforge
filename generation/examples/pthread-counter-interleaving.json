@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "slug": "pthread-counter-interleaving",
   "title": "A mutex around half an update",
   "category": "operating_systems",
@@ -7,7 +7,7 @@
   "format": "single_choice",
   "shortDescription": "Reason about a split critical section without invoking undefined behavior.",
   "statement": "Two pthread workers each execute the following once. The shared counter starts at 0. All accesses to counter use the same initialized mutex; assume no errors and that main joins both threads.\n\n```c\npthread_mutex_lock(&mu);\nint local = counter;\npthread_mutex_unlock(&mu);\nlocal += 1;\npthread_mutex_lock(&mu);\ncounter = local;\npthread_mutex_unlock(&mu);\n```\n\nWhich set contains exactly the possible final values of counter?",
-  "constraints": "Ordinary C integer counter, initially zero. local is thread-local. Each lock/unlock pair forms a critical section. No other code accesses counter. Reason over all interleavings preserving each thread\u2019s program order.",
+  "constraints": "Ordinary C integer counter, initially zero. local is thread-local. Each lock/unlock pair forms a critical section. No other code accesses counter. Reason over all interleavings preserving each thread’s program order.",
   "objectives": [
     "Distinguish a data race from a lost update",
     "Enumerate legal synchronized interleavings"
@@ -51,5 +51,14 @@
     "source": "import json\nfinal=set()\ndef explore(pc,local,counter):\n if pc==[2,2]:\n  final.add(counter);return\n for t in range(2):\n  if pc[t]==2:continue\n  nextpc=pc.copy();nextlocal=local.copy();nextcounter=counter\n  if pc[t]==0:nextlocal[t]=counter+1\n  else:nextcounter=local[t]\n  nextpc[t]+=1\n  explore(nextpc,nextlocal,nextcounter)\nexplore([0,0],[0,0],0)\nchoices={\"A\":{2},\"B\":{1,2},\"C\":{0,1,2}}\nprint(json.dumps(next(k for k,v in choices.items() if v==final)))\n"
   },
   "explanation": "The result is 1 or 2. If both threads read zero before either write, both later write one. If one completes before the other reads, the second writes two. Mutexes protect every shared access, so this is a lost-update logic error rather than a C data race. Hold the mutex across the entire increment to guarantee two.",
-  "reviewNotes": "The verifier exhaustively enumerates the read and write critical sections in per-thread order. Local arithmetic can be folded into the read transition because local has no shared effects. Theoretical review separately checks that every counter access is mutex-protected."
+  "reviewNotes": "The verifier exhaustively enumerates the read and write critical sections in per-thread order. Local arithmetic can be folded into the read transition because local has no shared effects. Theoretical review separately checks that every counter access is mutex-protected.",
+  "practice": {
+    "role": "operating_systems",
+    "level": "Full-time interview",
+    "focus": "reasoning"
+  },
+  "hints": {
+    "nudge": "Data-race freedom and preserving a whole logical update are different properties.",
+    "approach": "Write the synchronized read and write actions as separate events. Enumerate orderings consistent with each thread’s program order, tracking each thread’s local value without assuming the whole increment is atomic."
+  }
 }

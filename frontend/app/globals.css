@@ -358,3 +358,80 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline-offs
   .brand-symbol { width: 16px; height: 16px; flex-shrink: 0; }
   .theme-toggle { width: 28px; height: 28px; padding: 5px; }
 }
+
+/* Prompt tools share the same quiet forms and single accent as practice. */
+.prompts-page { padding-bottom: 80px; }
+.catalog-header > p { margin-top: 16px; font-size: 14px; }
+.prompt-modes { display: flex; gap: 8px; margin-bottom: 36px; }
+.prompt-modes [aria-pressed="true"] { color: var(--accent-text); border-color: var(--accent-text); background: var(--accent-soft); }
+.prompt-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 56px; align-items: start; }
+.prompt-form, .tutor-builder, .help-prompt-body, .prompt-advanced { display: grid; gap: 24px; min-width: 0; }
+.prompt-form label, .tutor-builder label, .help-prompt label, .prompt-output label { display: grid; gap: 9px; color: var(--text-muted); font: 11px var(--font-mono); min-width: 0; }
+.prompt-field-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px 18px; }
+.prompt-form > .btn { justify-self: start; }
+.form-note { font-size: 12px; line-height: 1.6; color: var(--text-muted); }
+.mix-editor { min-width: 0; border: 0; border-top: 1px solid var(--line); padding: 20px 0 0; }
+.mix-editor legend { padding-right: 12px; font: 11px var(--font-mono); color: var(--text-muted); }
+.mix-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) 54px 32px; gap: 8px; margin-bottom: 12px; }
+.mix-row select, .mix-row input { padding: 10px 7px !important; font-size: 11px !important; min-width: 0; }
+.mix-row input:disabled, .mix-row select:disabled { opacity: 1; color: var(--text-muted); border-color: var(--line); cursor: default; }
+.mix-row .btn { min-width: 0; min-height: 0; padding: 0; }
+.prompt-options { border-block: 1px solid var(--line); padding-block: 18px; }
+.prompt-options summary, .help-prompt summary, .problem-hints > summary, .practice-plan summary, .interview-contract summary { color: var(--text-muted); font: 12px var(--font-mono); cursor: pointer; }
+.prompt-options[open] > summary { margin-bottom: 24px; }
+.prompt-output { border: 1px solid var(--line); padding: 28px; min-width: 0; background: var(--bg); }
+.prompt-output-meta { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; color: var(--text-muted); font: 10px var(--font-mono); margin-bottom: 24px; overflow-wrap: anywhere; }
+.prompt-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.prompt-output > .form-note { margin-block: 16px; }
+.prompt-preview { font: 11px/1.7 var(--font-mono) !important; resize: vertical; tab-size: 2; }
+.prompt-empty { padding: 32px 0; }
+.prompt-cursor { display: block; font: 42px var(--font-mono); color: var(--accent-text); text-shadow: var(--glow); margin-bottom: 24px; }
+.prompt-empty h2 { font: 22px/1.3 var(--font-mono); letter-spacing: -.04em; max-width: 22ch; }
+.prompt-empty p { font-size: 13px; line-height: 1.8; margin-top: 20px; }
+.prompt-empty a { display: inline-block; margin-top: 32px; color: var(--accent-text); font: 11px var(--font-mono); }
+.tutor-builder { max-width: 760px; }
+.tutor-work-head { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; }
+.tutor-work-head label { flex: 1; min-width: 150px; }
+.help-prompt { margin-top: 24px; border-top: 1px solid var(--line); padding: 20px; min-width: 0; }
+.help-prompt-body { padding-top: 20px; }
+.tutor-builder .help-prompt { padding-inline: 0; margin-top: 0; }
+.practice-plan { margin-bottom: 24px; }
+.practice-plan p, .practice-plan li { font-size: 12px; }
+.practice-plan p { margin-top: 16px; }
+.practice-plan ul { padding-left: 18px; }
+.problem-hints { font-size: 13px; }
+.hint-step { padding-top: 20px; }
+.hint-step h3 { font: 11px var(--font-mono); color: var(--accent-text); margin-bottom: 12px; }
+.hint-step p { font-size: 13px; }
+.problem-hints > .btn { margin-top: 20px; }
+.hint-help-link { display: block; width: fit-content; color: var(--text-muted); font: 11px/1.7 var(--font-mono); margin-top: 24px; }
+.hint-help-link:hover { color: var(--accent-text); }
+.interview-contract { padding-bottom: 24px; }
+.interview-contract ul { margin-top: 16px; padding-left: 18px; list-style: disc; color: var(--text-muted); font-size: 13px; line-height: 1.8; }
+.question-focus { display: inline-block; margin-top: 12px; color: var(--text-muted); font: 10px var(--font-mono); }
+@media (max-width: 1000px) { .prompt-layout { grid-template-columns: minmax(0,1fr); gap: 28px; } .mix-row { grid-template-columns: minmax(0,1fr) minmax(0,1fr) 48px; } .mix-row .btn { grid-column: 3; } }
+@media (max-width: 760px) {
+ .prompt-layout { grid-template-columns: minmax(0,1fr); gap: 32px; }
+ .prompt-output { padding: 20px; }
+ .prompt-empty { padding-block: 8px; }
+ .prompt-field-grid { gap: 20px 12px; }
+ .mix-row { grid-template-columns: minmax(0,1fr) minmax(0,1fr) 48px 28px; }
+ .mix-row .btn { grid-column: auto; }
+ .site-header-inner { height: auto; min-height: 70px; flex-wrap: wrap; gap: 0 20px; }
+ .header-actions { flex: 1; justify-content: flex-end; }
+}
+@media (max-width: 480px) {
+ .site-header-inner { padding-block: 16px 6px; }
+ .brand-mark { width: 100%; margin-bottom: 8px; }
+ .header-actions { justify-content: space-between; gap: 12px; }
+ .main-nav { flex: 1; justify-content: space-between; font-size: 11px; gap: 14px; }
+ .prompt-output .prompt-actions .btn { padding-inline: 10px; }
+ .mix-row { grid-template-columns: minmax(0,1fr) minmax(0,1fr) 44px; }
+ .mix-row .btn { grid-column: 3; }
+}
+
+@media (max-width: 480px) {
+ .prompts-page .catalog-header { flex-direction: column; align-items: flex-start; gap: 0; }
+ .prompt-field-grid { grid-template-columns: minmax(0,1fr); }
+ .prompt-empty { padding-block: 0; }
+}

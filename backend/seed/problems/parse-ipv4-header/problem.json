@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 30,
-    "focusAreas": ["packet-parsing", "bit-fields", "endianness"],
-    "source": "seed"
+    "focusAreas": [
+      "packet-parsing",
+      "bit-fields",
+      "endianness"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 30,
+    "objectives": [
+      "Parse raw IPv4 header bytes into structured fields with strict validation"
+    ],
+    "hints": {
+      "nudge": "The header length field is measured in a different unit from the buffer length.",
+      "approach": "Validate version, header length, and packet bounds before reading optional header bytes. Decode network-order fields explicitly rather than relying on host layout."
+    }
   },
   "tags": ["ipv4", "networking", "bit-manipulation", "parsing"],
   "templates": [

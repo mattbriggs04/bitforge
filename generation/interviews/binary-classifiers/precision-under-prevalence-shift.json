@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "category": "ai_ml",
   "difficulty": "medium",
   "format": "single_choice",
@@ -14,7 +14,7 @@
   "statement": "At a fixed threshold, a binary classifier has a true-positive rate of $80\\%$ and a false-positive rate of $10\\%$.\n\nIn deployment, only $1\\%$ of examples are positive. Assume those two conditional rates remain unchanged.\n\nWhat is the classifier's deployment precision, approximately?",
   "constraints": "Precision is $\\Pr(y=1\\mid\\widehat{y}=1)$. Rates and prevalence describe the population, not uncertain estimates. Round the percentage to two decimal places.",
   "objectives": [
-    "Apply Bayes\u2019 rule to classifier evaluation",
+    "Apply Bayes’ rule to classifier evaluation",
     "Distinguish precision from recall",
     "Reason about the base-rate effect"
   ],
@@ -51,5 +51,14 @@
     "source": "import json\nfrom fractions import Fraction as F\nprevalence=F(1,100);recall=F(4,5);fpr=F(1,10)\npositive_mass=prevalence*recall\nfalse_positive_mass=(1-prevalence)*fpr\npercentage=100*positive_mass/(positive_mass+false_positive_mass)\noptions={'A':F(748,100),'B':F(4444,100),'C':F(80),'D':F(8889,100)}\nmatch=[k for k,v in options.items() if abs(percentage-v)<=F(1,200)]\nassert len(match)==1\nprint(json.dumps(match[0]))\n"
   },
   "explanation": "Among $10{,}000$ deployment examples, $100$ are positive and $9{,}900$ negative. The classifier produces $80$ true positives and $990$ false positives. Thus\n\n$$\n\\mathrm{Precision}=\\frac{\\mathrm{TP}}{\\mathrm{TP}+\\mathrm{FP}}=\\frac{80}{80+990}\\approx 0.074766=7.48\\%.\n$$\n\nStrong recall alone does not guarantee strong precision when the positive class is rare.",
-  "reviewNotes": "The count-based derivation uses a population of 10,000. The independent verifier uses exact rational probabilities and Bayes\u2019 rule, then verifies a unique option within the stated rounding interval. Distribution shift assumptions are explicit."
+  "reviewNotes": "The count-based derivation uses a population of 10,000. The independent verifier uses exact rational probabilities and Bayes’ rule, then verifies a unique option within the stated rounding interval. Distribution shift assumptions are explicit.",
+  "practice": {
+    "role": "ai_ml",
+    "level": "Full-time interview",
+    "focus": "reasoning"
+  },
+  "hints": {
+    "nudge": "Precision depends on how common the positive class is in the evaluated population.",
+    "approach": "Build a hypothetical population using the stated prevalence. Apply true-positive and false-positive rates to their own populations, then reason about the composition of predicted positives."
+  }
 }

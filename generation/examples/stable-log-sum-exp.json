@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "category": "ai_ml",
   "difficulty": "medium",
   "format": "coding",
@@ -88,5 +88,14 @@
       "expected": "-999.3068528194401",
       "hidden": true
     }
-  ]
+  ],
+  "practice": {
+    "role": "ai_ml",
+    "level": "Full-time interview",
+    "focus": "applied"
+  },
+  "hints": {
+    "nudge": "Which transformation preserves relative exponentials while keeping their magnitudes manageable?",
+    "approach": "Factor out a shared offset before exponentiation, then account for it after taking the logarithm. Check a single value, very large inputs, and values far below the maximum."
+  }
 }

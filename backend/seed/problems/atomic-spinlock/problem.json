@@ -9,8 +9,26 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 25,
-    "focusAreas": ["locks", "atomics", "volatile", "ownership"],
-    "source": "seed"
+    "focusAreas": [
+      "locks",
+      "atomics",
+      "volatile",
+      "ownership"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 25,
+    "objectives": [
+      "Implement a small spinlock API using an atomic compare-and-swap hook"
+    ],
+    "hints": {
+      "nudge": "A successful atomic transition is what grants ownership.",
+      "approach": "Express acquisition as an attempted state change through the provided atomic hook. Distinguish one try from repeated attempts, and keep release behavior consistent with the lock\u2019s documented contract."
+    }
   },
   "tags": ["locks", "spinlock", "atomic", "volatile", "critical-section"],
   "templates": [

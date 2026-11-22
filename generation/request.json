@@ -12,5 +12,7 @@
     "stable log-sum-exp",
     "ADC bit-depth sizing",
     "lost-update counter"
-  ]
+  ],
+  "kind": "question",
+  "role": "random"
 }

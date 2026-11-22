@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { HelpPrompt } from "@/components/help-prompt";
 import { Markdown } from "@/components/markdown";
 import { ProblemDetail, Submission } from "@/lib/types";
 import { loadOrCreateUserKey, loadStoredUsername } from "@/lib/username";
@@ -99,6 +100,7 @@ export function AnswerWorkbench({ problem }: { problem: ProblemDetail }) {
         {submission?.status === "completed" ? <button className="btn btn-muted" onClick={() => void reveal()}>Explanation</button> : null}
       </div>
       {explanation ? <article className="markdown-body answer-explanation"><Markdown>{explanation}</Markdown></article> : null}
+      <HelpPrompt problem={problem} work={format === "numeric" ? numeric : JSON.stringify({ selected })} language="answer" submission={submission} />
     </section>
   );
 }

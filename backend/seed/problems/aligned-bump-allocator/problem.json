@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 30,
-    "focusAreas": ["memory-management", "alignment", "constraints"],
-    "source": "seed"
+    "focusAreas": [
+      "memory-management",
+      "alignment",
+      "constraints"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 30,
+    "objectives": [
+      "Allocate aligned blocks from a fixed memory pool with no free operation"
+    ],
+    "hints": {
+      "nudge": "Alignment padding also consumes space in the pool.",
+      "approach": "Reason about the next aligned position and the complete requested interval before changing allocator state. Check overflow and failure cases without advancing the allocation cursor."
+    }
   },
   "tags": ["memory", "alignment", "allocator", "pointers"],
   "templates": [

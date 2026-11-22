@@ -2,6 +2,7 @@
 
 import { useTheme } from "@/lib/theme";
 import { configureEditor } from "@/lib/editor-theme";
+import { HelpPrompt } from "@/components/help-prompt";
 import { AnswerWorkbench } from "@/components/answer-workbench";
 
 import dynamic from "next/dynamic";
@@ -327,6 +328,7 @@ function CodeWorkbench({ problem }: Props) {
           ) : null}
         </div>
       </section>
+      <HelpPrompt problem={problem} work={code} language={language} submission={submission} />
     </section>
   );
 }

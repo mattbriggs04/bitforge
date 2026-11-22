@@ -82,7 +82,11 @@ cat > "$base_dir/problem.json" <<JSON
   "metadata": {
     "estimatedMinutes": 20,
     "focusAreas": ["systems"],
-    "source": "seed"
+    "source": "seed",
+    "practice": {"role": "embedded", "level": "Full-time interview", "focus": "applied"},
+    "targetMinutes": 20,
+    "objectives": ["Replace with a measurable learning objective."],
+    "hints": {"nudge": "Replace with a conceptual nudge.", "approach": "Replace with a strategy that leaves the solution to the learner."}
   },
   "tags": ["c"],
   "templates": [

@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 35,
-    "focusAreas": ["xor", "popcount", "sliding-window"],
-    "source": "seed"
+    "focusAreas": [
+      "xor",
+      "popcount",
+      "sliding-window"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 35,
+    "objectives": [
+      "Find the worst 8-bit error window between expected and observed samples"
+    ],
+    "hints": {
+      "nudge": "Which bit operation marks positions where two samples disagree?",
+      "approach": "Separate the disagreement map from the moving-window count. Track how the count changes as the window advances, and apply the specified tie rule when updating the best window."
+    }
   },
   "tags": ["bitwise", "popcount", "xor", "telemetry"],
   "templates": [

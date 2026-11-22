@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/mattbriggs04/bitforge/backend/internal/curriculum"
 	"github.com/mattbriggs04/bitforge/backend/internal/judge"
 )
 
@@ -31,31 +32,33 @@ type Case struct {
 	Hidden   bool   `json:"hidden"`
 }
 type Bundle struct {
-	SchemaVersion    int               `json:"schemaVersion"`
-	Slug             string            `json:"slug"`
-	Title            string            `json:"title"`
-	Category         string            `json:"category"`
-	Difficulty       string            `json:"difficulty"`
-	Format           string            `json:"format"`
-	ShortDescription string            `json:"shortDescription"`
-	Statement        string            `json:"statement"`
-	Constraints      string            `json:"constraints"`
-	Objectives       []string          `json:"objectives"`
-	Tags             []string          `json:"tags"`
-	TargetMinutes    int               `json:"targetMinutes"`
-	Seed             int64             `json:"seed"`
-	Provenance       string            `json:"provenance"`
-	Templates        map[string]string `json:"templates,omitempty"`
-	References       []Program         `json:"references,omitempty"`
-	Independent      Program           `json:"independent"`
-	Generator        *Program          `json:"generator,omitempty"`
-	Mutants          []Program         `json:"mutants,omitempty"`
-	Cases            []Case            `json:"cases,omitempty"`
-	Comparator       judge.Comparator  `json:"comparator"`
-	Options          []Option          `json:"options,omitempty"`
-	Answer           string            `json:"answer,omitempty"`
-	Explanation      string            `json:"explanation"`
-	ReviewNotes      string            `json:"reviewNotes"`
+	Practice         curriculum.Profile `json:"practice"`
+	Hints            curriculum.Hints   `json:"hints"`
+	SchemaVersion    int                `json:"schemaVersion"`
+	Slug             string             `json:"slug"`
+	Title            string             `json:"title"`
+	Category         string             `json:"category"`
+	Difficulty       string             `json:"difficulty"`
+	Format           string             `json:"format"`
+	ShortDescription string             `json:"shortDescription"`
+	Statement        string             `json:"statement"`
+	Constraints      string             `json:"constraints"`
+	Objectives       []string           `json:"objectives"`
+	Tags             []string           `json:"tags"`
+	TargetMinutes    int                `json:"targetMinutes"`
+	Seed             int64              `json:"seed"`
+	Provenance       string             `json:"provenance"`
+	Templates        map[string]string  `json:"templates,omitempty"`
+	References       []Program          `json:"references,omitempty"`
+	Independent      Program            `json:"independent"`
+	Generator        *Program           `json:"generator,omitempty"`
+	Mutants          []Program          `json:"mutants,omitempty"`
+	Cases            []Case             `json:"cases,omitempty"`
+	Comparator       judge.Comparator   `json:"comparator"`
+	Options          []Option           `json:"options,omitempty"`
+	Answer           string             `json:"answer,omitempty"`
+	Explanation      string             `json:"explanation"`
+	ReviewNotes      string             `json:"reviewNotes"`
 }
 
 func Decode(data []byte, target any) error {
@@ -84,7 +87,16 @@ func (p Program) Check() error {
 	return nil
 }
 func (b Bundle) Check() error {
-	if b.SchemaVersion != 1 || !slugPattern.MatchString(b.Slug) || len(b.Slug) > 100 {
+	if err := b.Practice.Check(); err != nil {
+		return err
+	}
+	if err := b.Hints.Check(); err != nil {
+		return err
+	}
+	if b.SchemaVersion != 2 {
+		return fmt.Errorf("question schemaVersion must be 2; include the practice/hints or interview contract fields")
+	}
+	if !slugPattern.MatchString(b.Slug) || len(b.Slug) > 100 {
 		return fmt.Errorf("invalid schemaVersion or slug")
 	}
 	for _, v := range []string{b.Title, b.Category, b.Statement, b.Constraints, b.ShortDescription, b.Explanation, b.ReviewNotes, b.Provenance} {

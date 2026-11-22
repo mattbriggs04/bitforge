@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "slug": "binary-classifiers",
   "title": "Binary classifiers",
   "category": "ai_ml",
@@ -9,5 +9,15 @@
     "precision-under-prevalence-shift.json",
     "roc-auc-with-tied-scores.json",
     "best-f1-threshold.json"
-  ]
+  ],
+  "contract": {
+    "role": "ai_ml",
+    "preset": "custom",
+    "level": "Full-time interview",
+    "targetMinutes": 45,
+    "objectives": [
+      "Reason about logistic gradients and population-level classifier metrics",
+      "Implement deterministic F1 threshold selection with tied scores"
+    ]
+  }
 }

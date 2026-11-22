@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 15,
-    "focusAreas": ["endianness", "integer-widths", "bitwise"],
-    "source": "seed"
+    "focusAreas": [
+      "endianness",
+      "integer-widths",
+      "bitwise"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "fundamentals"
+    },
+    "targetMinutes": 15,
+    "objectives": [
+      "Read big-endian integers and write a little-endian word without unaligned casts"
+    ],
+    "hints": {
+      "nudge": "Byte order describes significance, not the host machine\u2019s memory layout.",
+      "approach": "Assign each source byte its position in the reconstructed unsigned value. For writing, extract bytes explicitly in the requested order and avoid alignment assumptions."
+    }
   },
   "tags": ["endianness", "bitwise", "data-types", "pointers"],
   "templates": [

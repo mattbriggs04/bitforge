@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 35,
-    "focusAreas": ["memory-management", "constraints", "pointers"],
-    "source": "seed"
+    "focusAreas": [
+      "memory-management",
+      "constraints",
+      "pointers"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 35,
+    "objectives": [
+      "Allocate and free fixed-size blocks without dynamic memory"
+    ],
+    "hints": {
+      "nudge": "How can the allocator tell a valid block start from an interior address?",
+      "approach": "Keep allocation state separate from address calculation. For freeing, reason about pool bounds, block alignment, and whether that block is currently allocated."
+    }
   },
   "tags": ["memory", "pool", "pointers", "constraints"],
   "templates": [

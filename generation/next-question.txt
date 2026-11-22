@@ -1,9 +1,12 @@
 Create exactly one BitForge question using this resolved request:
 {
+  "kind": "question",
+  "role": "computer_vision",
+  "preset": "custom",
   "schemaVersion": 1,
-  "seed": 3657816354500153132,
-  "category": "computer_architecture",
-  "format": "coding",
+  "seed": 881468639973549,
+  "category": "computer_vision",
+  "format": "single_choice",
   "language": "python",
   "difficulty": "medium",
   "level": "graduate course or full-time interview",
@@ -16,10 +19,12 @@ Create exactly one BitForge question using this resolved request:
   ]
 }
 
-Read backend/internal/authoring/bundle.go for the strict JSON bundle contract and generation/examples/*.json for complete examples. Write a NEW draft JSON file under generation/drafts/; do not modify existing questions, the validator, worker, tests or publication code. Never place private artifacts in frontend/public.
+Read AGENTS.md first. Role emphasis: Geometry, image operations, numerical reasoning, and algorithm implementation.
 
-1. Define the specification, assumptions, units, learning objectives, and grading contract before solving. Match the requested category, format, topic, level, difficulty, time budget, language, and seed. Avoid the supplied topics/problems. Use an original problem with a precise unambiguous answer.
-2. Emit schemaVersion=1. Include provenance (agent/model if known; never invent it), explanation, and reviewNotes describing independent reasoning and limitations. Difficulty is easy/medium/hard; graduate level belongs in the requested content, not a new enum.
+Read backend/internal/authoring/bundle.go for the strict JSON bundle contract and generation/examples/*.json for complete examples. Write NEW content at generation/drafts/<slug>.json; do not modify existing questions, the validator, worker, tests or publication code. Never place private artifacts in frontend/public.
+
+1. Define the specification, assumptions, units, learning objectives, and grading contract before solving. Match the requested role, category, question format or interview mix, topic, level, difficulty, time budget, language, seed, and any supplied objectives. Avoid the supplied topics/problems. Use an original problem with a precise unambiguous answer.
+2. Emit schemaVersion=2. Include practice={"role":"<resolved role>","level":"<resolved level>","focus":"fundamentals|applied|reasoning"}. Focus describes what the question tests, independently of its answer format. Keep objectives measurable and targetMinutes realistic. Include hints={"nudge":"...","approach":"..."}: the nudge points to a concept or useful question; the approach explains a strategy without a final answer or complete implementation. Both are public, progressively revealed Markdown supporting LaTeX. For choice questions never reveal the correct ID or eliminate every alternative. Scaffolding and walkthroughs belong to on-demand tutoring, not stored hints. Include provenance (agent/model if known; never invent it), explanation, and reviewNotes describing independent reasoning and limitations. Difficulty is easy/medium/hard; graduate level belongs in the requested content, not a new enum.
 3. Coding: full standalone stdin/stdout programs, not function snippets. Use only installed standard libraries or Python NumPy. Include a compiling starter in templates, one reference per advertised language, a DIFFERENT simpler independent verifier, and at least two distinct plausible compiling mutants. Comparators are exact (trimmed text), numeric (one finite number), or json (recursive numeric tolerance); specify any tolerances in the statement. No custom checker code is accepted.
 4. Include 2..20 hand-calculated anchor cases, with both public and private coverage. Provide a deterministic generator program: it reads the integer seed from stdin and prints ONLY a JSON array of 20..100 objects {"name":"unique-case-name","input":"stdin text"}. It generates inputs, never expected answers. Cover boundaries, invalid inputs only where the specification defines behavior, representative random inputs, and relevant invariants.
 5. Answer formats: no templates/references/generator/cases/mutants. Numeric answer is a finite numeric string with units specified in the statement. Choice options have stable IDs, text, and a rationale for EVERY option. Answer is an encoded JSON string ID for single_choice or encoded JSON array of IDs for multiple_select. Choice comparator kind is json. Provide an independent executable verifier whose stdout matches answer, based on a real calculation/model rather than simply printing the answer. Verify theoretical reasoning separately in reviewNotes; execution alone cannot prove conceptual truth.

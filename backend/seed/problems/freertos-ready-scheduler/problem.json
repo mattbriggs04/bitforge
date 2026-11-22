@@ -9,8 +9,26 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 40,
-    "focusAreas": ["rtos", "scheduling", "bitwise", "state-machines"],
-    "source": "seed"
+    "focusAreas": [
+      "rtos",
+      "scheduling",
+      "bitwise",
+      "state-machines"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 40,
+    "objectives": [
+      "Implement a tiny priority scheduler with ready bits and tick-based delays"
+    ],
+    "hints": {
+      "nudge": "Separate task readiness from the rule that chooses the next task.",
+      "approach": "Track delay expiration and ready-state changes first, then select the highest-priority eligible task. Trace a tick with several tasks becoming ready together."
+    }
   },
   "tags": ["freertos", "rtos", "scheduler", "bitwise", "state"],
   "templates": [

@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 12,
-    "focusAreas": ["pointers", "memory", "c-standard-library"],
-    "source": "seed"
+    "focusAreas": [
+      "pointers",
+      "memory",
+      "c-standard-library"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "fundamentals"
+    },
+    "targetMinutes": 12,
+    "objectives": [
+      "Implement a null-terminated string length routine without using libc"
+    ],
+    "hints": {
+      "nudge": "What byte marks the end of the string?",
+      "approach": "Track how many bytes precede the first terminator. Check the empty-string case before reasoning about longer strings."
+    }
   },
   "tags": ["strings", "libc", "pointers", "null-termination"],
   "templates": [

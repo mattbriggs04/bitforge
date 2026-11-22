@@ -1,4 +1,9 @@
+export type PracticeProfile = { role: string; level: string; focus: string };
+export type InterviewContract = { role: string; preset: string; level: string; targetMinutes: number; objectives: string[] };
 export type ProblemSummary = {
+ practice: PracticeProfile;
+ targetMinutes: number;
+ objectives: string[];
   id: string;
   slug: string;
   title: string;
@@ -40,6 +45,7 @@ export type ProblemMetadata = Record<string, unknown> & {
 };
 
 export type ProblemDetail = ProblemSummary & {
+ hints: { nudge: string; approach: string };
   statementMarkdown: string;
   constraintsMarkdown: string;
   samples: ProblemSample[];
@@ -91,6 +97,7 @@ export type APIError = {
 };
 
 export type InterviewSummary = {
+ contract: InterviewContract;
   slug: string;
   title: string;
   category: string;
@@ -102,3 +109,18 @@ export type InterviewSummary = {
 export type InterviewDetail = InterviewSummary & {
   problems: ProblemSummary[];
 };
+
+export type QuestionMix = { format: string; focus: string; count: number };
+export type PromptCatalog = {
+ roles: { id: string; label: string; category: string; language: string; emphasis: string }[];
+ presets: { id: string; label: string; targetMinutes: number }[];
+ formats: string[];
+ focuses: string[];
+ defaults: Record<string, Record<string, QuestionMix[]>>;
+};
+export type GenerationConfig = {
+ schemaVersion: number; kind: string; role: string; preset: string; category: string;
+ format: string; language: string; difficulty: string; level: string; topic: string;
+ targetMinutes: number; seed: number; avoid: string[]; objectives: string[]; mix: QuestionMix[];
+};
+export type CompiledPrompt = { config: GenerationConfig; prompt: string };

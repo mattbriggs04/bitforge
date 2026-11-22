@@ -9,8 +9,26 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 35,
-    "focusAreas": ["ring-buffer", "critical-sections", "isr", "volatile"],
-    "source": "seed"
+    "focusAreas": [
+      "ring-buffer",
+      "critical-sections",
+      "isr",
+      "volatile"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 35,
+    "objectives": [
+      "Implement an ISR producer ring buffer with locked main-loop reads"
+    ],
+    "hints": {
+      "nudge": "Which shared state could change between two main-loop operations?",
+      "approach": "Identify the read-side operation that must be atomic with respect to the ISR. Keep its lock/unlock balanced on every exit path, and trace empty and full transitions separately."
+    }
   },
   "tags": ["ring-buffer", "locks", "isr", "critical-section", "volatile"],
   "templates": [

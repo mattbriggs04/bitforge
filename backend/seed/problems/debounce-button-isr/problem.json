@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 25,
-    "focusAreas": ["interrupts", "state-machines", "bit-operations"],
-    "source": "seed"
+    "focusAreas": [
+      "interrupts",
+      "state-machines",
+      "bit-operations"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 25,
+    "objectives": [
+      "Implement an 8-sample shift-register debouncer with rising/falling edge events"
+    ],
+    "hints": {
+      "nudge": "A single sample should not immediately change the debounced state.",
+      "approach": "Keep sample history separate from the accepted button state. Decide when a history window is stable, then emit an event only when the accepted state changes."
+    }
   },
   "tags": ["debounce", "interrupts", "embedded", "register-simulation"],
   "templates": [

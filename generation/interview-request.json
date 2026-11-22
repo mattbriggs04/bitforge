@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "kind": "interview",
+  "role": "ai_ml",
+  "preset": "interview",
+  "category": "ai_ml",
+  "format": "random",
+  "language": "python",
+  "difficulty": "medium",
+  "level": "Full-time interview",
+  "topic": "classifier evaluation and numerical reasoning",
+  "targetMinutes": 60,
+  "seed": 0,
+  "objectives": [],
+  "avoid": ["binary-classifiers"]
+}

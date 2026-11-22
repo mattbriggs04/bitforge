@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "slug": "adc-quantization-error",
   "title": "ADC quantization error budget",
   "category": "embedded",
@@ -28,6 +28,15 @@
     "language": "python",
     "source": "from fractions import Fraction\nb=1\nwhile Fraction(33,10)/(2**b*2)/Fraction(1,100)>Fraction(1,20):\n    b+=1\nprint(b)\n"
   },
-  "explanation": "The error in degrees Celsius is 3.3 / (2 \u00d7 2^b \u00d7 0.010) = 165 / 2^b. Requiring this to be at most 0.05 gives 2^b >= 3300. Thus b=12; 11 bits gives about 0.0806 degrees and 12 bits about 0.0403 degrees.",
-  "reviewNotes": "Verified by an exact rational search; the statement defines the bin-width convention and excludes analog errors."
+  "explanation": "The error in degrees Celsius is 3.3 / (2 × 2^b × 0.010) = 165 / 2^b. Requiring this to be at most 0.05 gives 2^b >= 3300. Thus b=12; 11 bits gives about 0.0806 degrees and 12 bits about 0.0403 degrees.",
+  "reviewNotes": "Verified by an exact rational search; the statement defines the bin-width convention and excludes analog errors.",
+  "practice": {
+    "role": "embedded",
+    "level": "Full-time interview",
+    "focus": "fundamentals"
+  },
+  "hints": {
+    "nudge": "Express the permitted error and the ADC step in the same physical unit.",
+    "approach": "Relate the stated quantization error model to the number of representable codes. Solve the inequality, then check the adjacent integer bit depths against the original error budget."
+  }
 }

@@ -9,8 +9,26 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 25,
-    "focusAreas": ["volatile", "mmio", "bitwise", "registers"],
-    "source": "seed"
+    "focusAreas": [
+      "volatile",
+      "mmio",
+      "bitwise",
+      "registers"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "reasoning"
+    },
+    "targetMinutes": 25,
+    "objectives": [
+      "Decode a volatile status register and acknowledge write-one-to-clear flags"
+    ],
+    "hints": {
+      "nudge": "Does reading a hardware register twice necessarily give the same value?",
+      "approach": "Use one status snapshot for decoding. Treat write-one-to-clear acknowledgements separately from ordinary read-modify-write updates; acknowledge only the requested flags."
+    }
   },
   "tags": ["volatile", "mmio", "bitwise", "registers"],
   "templates": [

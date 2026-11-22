@@ -18,6 +18,7 @@ export function SiteHeader() {
             <Link href="/" aria-current={pathname === "/" ? "page" : undefined}>Today</Link>
             <Link href="/interviews" aria-current={pathname.startsWith("/interviews") ? "page" : undefined}>Interviews</Link>
             <Link href="/problems" aria-current={pathname.startsWith("/problems") ? "page" : undefined}>Problems</Link>
+          <Link href="/prompts" aria-current={pathname.startsWith("/prompts") ? "page" : undefined}>Prompts</Link>
           </nav>
           <ThemeToggle />
         </div>

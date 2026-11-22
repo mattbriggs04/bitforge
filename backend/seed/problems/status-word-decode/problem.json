@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 20,
-    "focusAreas": ["masks", "shifts", "flags"],
-    "source": "seed"
+    "focusAreas": [
+      "masks",
+      "shifts",
+      "flags"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "fundamentals"
+    },
+    "targetMinutes": 20,
+    "objectives": [
+      "Extract health flags and small fields from a telemetry status word"
+    ],
+    "hints": {
+      "nudge": "A flag and a multi-bit field need different masks.",
+      "approach": "Annotate the status word with each field\u2019s starting bit and width. Test your extraction reasoning with a word that contains unrelated set bits."
+    }
   },
   "tags": ["bitwise", "flags", "telemetry", "masks"],
   "templates": [

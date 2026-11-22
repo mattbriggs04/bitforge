@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 15,
-    "focusAreas": ["volatile", "bitwise", "registers"],
-    "source": "seed"
+    "focusAreas": [
+      "volatile",
+      "bitwise",
+      "registers"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "fundamentals"
+    },
+    "targetMinutes": 15,
+    "objectives": [
+      "Modify a masked field in a volatile register while preserving unrelated bits"
+    ],
+    "hints": {
+      "nudge": "Which bits belong to the field, and which must survive the update?",
+      "approach": "Describe the register as two disjoint regions: preserved bits and replacement bits. Check that the replacement cannot set bits outside its field mask."
+    }
   },
   "tags": ["volatile", "registers", "bitwise", "read-modify-write"],
   "templates": [

@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { ProblemHints } from "@/components/problem-hints";
+import { problemLabel } from "@/lib/problem-labels";
 import { Markdown } from "@/components/markdown";
 import { ProblemDetail } from "@/lib/types";
 import { ProblemWorkbench } from "@/components/problem-workbench";
@@ -144,6 +146,7 @@ export function ProblemWorkspace({ problem }: Props) {
         <article className="problem-panel problem-panel-left" style={{ width: `${leftPanePercent}%` }}>
           <div className="problem-pane-section markdown-body">
             <h2>Problem</h2>
+            {problem.practice?.role ? <details className="practice-plan"><summary>{problemLabel(problem.practice.focus)} · {problem.targetMinutes} min</summary><p>{problemLabel(problem.practice.role)} · {problem.practice.level}</p><ul>{problem.objectives?.map((objective) => <li key={objective}>{objective}</li>)}</ul></details> : null}
             <Markdown>{statementMarkdown}</Markdown>
           </div>
 
@@ -178,6 +181,8 @@ export function ProblemWorkspace({ problem }: Props) {
               </ol>
             </div>
           ) : null}
+
+          <div className="problem-pane-section"><ProblemHints key={problem.slug} problem={problem} /></div>
 
           {solutionMarkdown ? (
             <div className="problem-pane-section">

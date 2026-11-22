@@ -28,7 +28,7 @@ func importGeneratedTx(ctx context.Context, tx *sql.Tx, b authoring.Bundle, repo
 	if report.BundleHash != authoring.Hash(b) || len(report.Checks) == 0 || len(report.Cases) == 0 || report.Image == "" {
 		return "", fmt.Errorf("invalid validation report")
 	}
-	p := seedProblem{Slug: b.Slug, Title: b.Title, Difficulty: b.Difficulty, Category: b.Category, ProblemType: b.Format, Short: b.ShortDescription, Statement: b.Statement, Constraints: b.Constraints, Tags: b.Tags, Metadata: map[string]any{"format": b.Format, "targetMinutes": b.TargetMinutes, "objectives": b.Objectives, "seed": b.Seed, "bundleHash": report.BundleHash, "provenance": b.Provenance}, JudgeRunner: "stdio_v1", JudgeConfig: map[string]any{"comparator": b.Comparator, "sandbox_image": report.Image, "compile_timeout_ms": 20000, "run_timeout_ms": 3000, "explanation": b.Explanation}}
+	p := seedProblem{Slug: b.Slug, Title: b.Title, Difficulty: b.Difficulty, Category: b.Category, ProblemType: b.Format, Short: b.ShortDescription, Statement: b.Statement, Constraints: b.Constraints, Tags: b.Tags, Metadata: map[string]any{"format": b.Format, "targetMinutes": b.TargetMinutes, "objectives": b.Objectives, "seed": b.Seed, "bundleHash": report.BundleHash, "provenance": b.Provenance, "practice": b.Practice, "hints": b.Hints}, JudgeRunner: "stdio_v1", JudgeConfig: map[string]any{"comparator": b.Comparator, "sandbox_image": report.Image, "compile_timeout_ms": 20000, "run_timeout_ms": 3000, "explanation": b.Explanation}}
 	for lang, starter := range b.Templates {
 		p.Templates = append(p.Templates, seedTemplate{Language: lang, StarterCode: starter, Notes: "Standalone program: read stdin, write only the specified answer to stdout. Python NumPy is available."})
 	}
@@ -78,7 +78,7 @@ func importGeneratedTx(ctx context.Context, tx *sql.Tx, b authoring.Bundle, repo
 // ImportInterview publishes all questions and their order in one transaction.
 // Validation happens before this function; every report is bound to its bundle.
 func ImportInterview(ctx context.Context, conn *sql.DB, interview authoring.Interview, bundles []authoring.Bundle, reports []authoring.Report) error {
-	if err := interview.Check(); err != nil {
+	if err := authoring.CheckInterviewMembers(interview, bundles); err != nil {
 		return err
 	}
 	if len(bundles) != len(interview.Questions) || len(reports) != len(bundles) {
@@ -89,7 +89,8 @@ func ImportInterview(ctx context.Context, conn *sql.DB, interview authoring.Inte
 		return err
 	}
 	defer tx.Rollback()
-	_, err = tx.ExecContext(ctx, `INSERT INTO interviews(slug,title,category,description) VALUES($1,$2,$3,$4) ON CONFLICT(slug) DO UPDATE SET title=excluded.title,category=excluded.category,description=excluded.description,updated_at=CURRENT_TIMESTAMP`, interview.Slug, interview.Title, interview.Category, interview.Description)
+	contract, _ := json.Marshal(interview.Contract)
+	_, err = tx.ExecContext(ctx, `INSERT INTO interviews(slug,title,category,description,contract) VALUES($1,$2,$3,$4,$5) ON CONFLICT(slug) DO UPDATE SET title=excluded.title,category=excluded.category,description=excluded.description,contract=excluded.contract,updated_at=CURRENT_TIMESTAMP`, interview.Slug, interview.Title, interview.Category, interview.Description, string(contract))
 	if err != nil {
 		return err
 	}

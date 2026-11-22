@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 30,
-    "focusAreas": ["bitfields", "packing", "signed-values"],
-    "source": "seed"
+    "focusAreas": [
+      "bitfields",
+      "packing",
+      "signed-values"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 30,
+    "objectives": [
+      "Pack and unpack a compact 32-bit actuator command"
+    ],
+    "hints": {
+      "nudge": "Write down the bit range and signedness of each field.",
+      "approach": "Treat packing and unpacking as inverse operations. Isolate each field before shifting it into place, and distinguish sign reconstruction from ordinary unsigned extraction."
+    }
   },
   "tags": ["bitwise", "packing", "protocols", "signed-integers"],
   "templates": [

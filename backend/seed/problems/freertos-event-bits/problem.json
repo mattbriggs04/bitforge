@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 30,
-    "focusAreas": ["rtos", "synchronization", "bitwise"],
-    "source": "seed"
+    "focusAreas": [
+      "rtos",
+      "synchronization",
+      "bitwise"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 30,
+    "objectives": [
+      "Implement event-bit set, clear, and wait semantics for task synchronization"
+    ],
+    "hints": {
+      "nudge": "Which event bits are observed, and when may they be cleared?",
+      "approach": "Separate matching from state mutation. Work through wait-any and wait-all using a mixture of requested and unrelated bits, including the no-match case."
+    }
   },
   "tags": ["freertos", "rtos", "event-bits", "bitwise"],
   "templates": [

@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/mattbriggs04/bitforge/backend/internal/curriculum"
 )
 
 type seedTemplate struct {
@@ -273,6 +275,25 @@ func convertProblemSpec(problemDir string, spec diskProblemSpec) (seedProblem, e
 		metadata = map[string]any{}
 	} else {
 		metadata = cloneMetadata(metadata)
+	}
+	var practice struct {
+		Profile       curriculum.Profile `json:"practice"`
+		Hints         curriculum.Hints   `json:"hints"`
+		TargetMinutes int                `json:"targetMinutes"`
+		Objectives    []string           `json:"objectives"`
+	}
+	raw, _ := json.Marshal(metadata)
+	if err := json.Unmarshal(raw, &practice); err != nil {
+		return seedProblem{}, fmt.Errorf("invalid practice metadata: %w", err)
+	}
+	if err := practice.Profile.Check(); err != nil {
+		return seedProblem{}, err
+	}
+	if err := practice.Hints.Check(); err != nil {
+		return seedProblem{}, err
+	}
+	if practice.TargetMinutes < 1 || practice.TargetMinutes > 180 || len(practice.Objectives) == 0 {
+		return seedProblem{}, fmt.Errorf("practice objectives and 1..180 targetMinutes required")
 	}
 	if spec.SolutionFile != "" {
 		solution, err := readSeedText(problemDir, spec.SolutionFile)

@@ -8,6 +8,12 @@ const labels: Record<string, string> = {
   multiple_select: "Multiple select",
   numeric: "Numerical",
   coding: "Code",
+  applied: "Applied",
+  fundamentals: "Fundamentals",
+  reasoning: "Reasoning",
+  daily: "Daily practice",
+  interview: "Technical interview",
+  exam: "Exam practice",
 };
 
 export function problemLabel(value: string): string {

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "category": "ai_ml",
   "difficulty": "medium",
   "format": "single_choice",
@@ -51,5 +51,14 @@
     "source": "import json, math\nsamples=[((1.,2.),1.),((-1.,1.),0.)]\ndef loss(w):\n    total=0.\n    for x,y in samples:\n        z=sum(a*b for a,b in zip(w,x))\n        total+=max(z,0.)+math.log1p(math.exp(-abs(z)))-y*z\n    return total/len(samples)+sum(v*v for v in w)\nh=1e-6\ng=[]\nfor j in range(2):\n    lo=[0.,0.];hi=[0.,0.];lo[j]=-h;hi[j]=h\n    g.append((loss(hi)-loss(lo))/(2*h))\noptions={'A':[-1.,-.5],'B':[.5,.25],'C':[-.5,-.25],'D':[0.,0.]}\nmatches=[k for k,v in options.items() if max(abs(a-b) for a,b in zip(g,v))<1e-7]\nassert len(matches)==1\nprint(json.dumps(matches[0]))\n"
   },
   "explanation": "For one example, the cross-entropy gradient is $(p-y)\\mathbf{x}$. At $\\mathbf{w}=\\mathbf{0}$, both probabilities are $\\frac{1}{2}$. The two contributions are $\\left(-\\frac{1}{2},-1\\right)$ and $\\left(-\\frac{1}{2},\\frac{1}{2}\\right)$. Their mean is\n\n$$\n\\nabla L(\\mathbf{0})=\\frac{1}{2}\\left[\\left(-\\frac{1}{2},-1\\right)+\\left(-\\frac{1}{2},\\frac{1}{2}\\right)\\right]=\\left(-\\frac{1}{2},-\\frac{1}{4}\\right).\n$$\n\nThe regularizer contributes $\\lambda\\mathbf{w}=(0,0)$.",
-  "reviewNotes": "The answer was derived analytically from feature-weighted residuals. The executable verifier instead differentiates the scalar, numerically stable loss with central finite differences and matches all candidate vectors. The batch average, sign and regularization convention are explicit."
+  "reviewNotes": "The answer was derived analytically from feature-weighted residuals. The executable verifier instead differentiates the scalar, numerically stable loss with central finite differences and matches all candidate vectors. The batch average, sign and regularization convention are explicit.",
+  "practice": {
+    "role": "ai_ml",
+    "level": "Full-time interview",
+    "focus": "fundamentals"
+  },
+  "hints": {
+    "nudge": "Does a balanced label count imply that feature-weighted residuals cancel?",
+    "approach": "Differentiate the mean loss before substituting the current weights. Track the feature-weighted residual contribution of each example, and evaluate the regularization term at the specified point."
+  }
 }

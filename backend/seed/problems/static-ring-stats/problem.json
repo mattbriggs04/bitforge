@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 25,
-    "focusAreas": ["static", "state", "integer-widths"],
-    "source": "seed"
+    "focusAreas": [
+      "static",
+      "state",
+      "integer-widths"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 25,
+    "objectives": [
+      "Maintain rolling sensor statistics with static state and bounded history"
+    ],
+    "hints": {
+      "nudge": "What changes when a new sample replaces an old one?",
+      "approach": "Track the retained sample count and which position will be replaced. Distinguish the partially filled buffer from the full buffer, and choose an accumulator width that fits the specified range."
+    }
   },
   "tags": ["static", "state", "ring-buffer", "data-types"],
   "templates": [

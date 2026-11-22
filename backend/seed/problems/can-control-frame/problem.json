@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 30,
-    "focusAreas": ["communication-protocols", "endianness", "bitwise"],
-    "source": "seed"
+    "focusAreas": [
+      "communication-protocols",
+      "endianness",
+      "bitwise"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 30,
+    "objectives": [
+      "Decode mixed-endian fields from an 8-byte CAN control frame"
+    ],
+    "hints": {
+      "nudge": "The two multi-byte fields do not use the same byte order.",
+      "approach": "Separate validation, checksum, and decoding. Label each byte with its significance for its own field, and reason about the signed torque word after reconstructing its bits."
+    }
   },
   "tags": ["can", "endianness", "protocols", "bitwise"],
   "templates": [

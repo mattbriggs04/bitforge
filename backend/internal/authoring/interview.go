@@ -2,6 +2,7 @@ package authoring
 
 import (
 	"fmt"
+	"github.com/mattbriggs04/bitforge/backend/internal/curriculum"
 	"io"
 	"io/fs"
 	"os"
@@ -12,16 +13,23 @@ import (
 // Interview is an ordered collection of independently validated questions.
 // Paths are relative to the manifest, allowing the entire collection to move.
 type Interview struct {
-	SchemaVersion int      `json:"schemaVersion"`
-	Slug          string   `json:"slug"`
-	Title         string   `json:"title"`
-	Category      string   `json:"category"`
-	Description   string   `json:"description"`
-	Questions     []string `json:"questions"`
+	Contract      curriculum.Contract `json:"contract"`
+	SchemaVersion int                 `json:"schemaVersion"`
+	Slug          string              `json:"slug"`
+	Title         string              `json:"title"`
+	Category      string              `json:"category"`
+	Description   string              `json:"description"`
+	Questions     []string            `json:"questions"`
 }
 
 func (i Interview) Check() error {
-	if i.SchemaVersion != 1 || !slugPattern.MatchString(i.Slug) || len(i.Slug) > 100 {
+	if err := i.Contract.Check(); err != nil {
+		return err
+	}
+	if i.SchemaVersion != 2 {
+		return fmt.Errorf("interview schemaVersion must be 2; include the practice/hints or interview contract fields")
+	}
+	if !slugPattern.MatchString(i.Slug) || len(i.Slug) > 100 {
 		return fmt.Errorf("invalid interview schemaVersion or slug")
 	}
 	if strings.TrimSpace(i.Title) == "" || strings.TrimSpace(i.Category) == "" || strings.TrimSpace(i.Description) == "" {
@@ -84,5 +92,50 @@ func LoadInterview(path string) (Interview, []Bundle, error) {
 		slugs[b.Slug] = true
 		bundles = append(bundles, b)
 	}
+	if err := CheckInterviewMembers(interview, bundles); err != nil {
+		return interview, nil, err
+	}
 	return interview, bundles, nil
+}
+
+// CheckInterviewMembers checks the learning contract as well as the ordered paths.
+func CheckInterviewMembers(i Interview, bundles []Bundle) error {
+	if err := i.Check(); err != nil {
+		return err
+	}
+	if len(bundles) != len(i.Questions) {
+		return fmt.Errorf("incomplete interview")
+	}
+	minutes := 0
+	focus := map[string]bool{}
+	slugs := map[string]bool{}
+	for _, b := range bundles {
+		if b.Practice.Role != i.Contract.Role || b.Practice.Level != i.Contract.Level {
+			return fmt.Errorf("%s practice role/level differs from interview contract", b.Slug)
+		}
+		if slugs[b.Slug] {
+			return fmt.Errorf("duplicate question slug")
+		}
+		slugs[b.Slug] = true
+		focus[b.Practice.Focus] = true
+		minutes += b.TargetMinutes
+	}
+	if minutes != i.Contract.TargetMinutes {
+		return fmt.Errorf("member minutes %d differ from contract %d", minutes, i.Contract.TargetMinutes)
+	}
+	required := []string{}
+	switch i.Contract.Preset {
+	case "daily":
+		required = []string{"fundamentals", "applied"}
+	case "interview":
+		required = curriculum.Focuses
+	case "exam":
+		required = []string{"fundamentals", "reasoning"}
+	}
+	for _, f := range required {
+		if !focus[f] {
+			return fmt.Errorf("%s preset requires %s coverage; use custom for another mix", i.Contract.Preset, f)
+		}
+	}
+	return nil
 }

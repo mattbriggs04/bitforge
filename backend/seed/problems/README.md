@@ -97,3 +97,7 @@ Reseed:
 ```bash
 make seed
 ```
+
+## Practice metadata and hints
+
+Each `metadata` object includes `practice: {role, level, focus}`, `targetMinutes`, measurable `objectives`, and `hints: {nudge, approach}`. Role IDs and focus values come from `backend/internal/curriculum/curriculum.go`. The seed loader validates these fields. Keep hints public and spoiler-light: a concept first, then a strategy. Leave scaffold and walkthrough help to an agent. Existing `estimatedMinutes` and `focusAreas` remain for compatibility.

@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 30,
-    "focusAreas": ["communication-protocols", "endianness", "bitwise"],
-    "source": "seed"
+    "focusAreas": [
+      "communication-protocols",
+      "endianness",
+      "bitwise"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 30,
+    "objectives": [
+      "Validate and parse a fixed-length SPI sensor response with sync and checksum bytes"
+    ],
+    "hints": {
+      "nudge": "What must be true before the frame can be interpreted as sensor data?",
+      "approach": "Validate the frame shape, synchronization bytes, and checksum before decoding fields. Follow the specified byte order and signedness for each value."
+    }
   },
   "tags": ["spi", "protocols", "checksum", "endianness"],
   "templates": [

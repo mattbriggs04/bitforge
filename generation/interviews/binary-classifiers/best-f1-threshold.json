@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "category": "ai_ml",
   "difficulty": "medium",
   "format": "coding",
@@ -104,5 +104,14 @@
     }
   ],
   "explanation": "Sort examples by decreasing score and sweep whole equal-score blocks. After each block, every processed example is predicted positive. If $P$ is the total number of actual positives and $K$ the number predicted positive, then\n\n$$\nF_1=\\frac{2\\,\\mathrm{TP}}{P+K}.\n$$\n\nCompare candidate fractions by integer cross multiplication. Start with the `null` candidate, score zero; process thresholds from largest to smallest and replace the best only on strict improvement. This preserves the largest-threshold tie break, including `null`. Sorting costs $\\mathcal{O}(n\\log n)$; the sweep costs $\\mathcal{O}(n)$.",
-  "reviewNotes": "The independent implementation enumerates every distinct threshold, constructs the full prediction vector, and computes TP/FP/FN with exact Fraction comparisons. It shares neither running counts nor the optimized sweep with the reference. Hand-derived anchors cover a nontrivial optimum, no positives, an exact F1 tie between different thresholds, tied score blocks, all positives and singleton inputs. Seeded cases emphasize duplicates, permutations, extremes and maximum size. Three mutants cover row-wise tie handling, the wrong threshold tie-break and a precision-like denominator. Validation cases are deterministic and only validation-label threshold selection is discussed."
+  "reviewNotes": "The independent implementation enumerates every distinct threshold, constructs the full prediction vector, and computes TP/FP/FN with exact Fraction comparisons. It shares neither running counts nor the optimized sweep with the reference. Hand-derived anchors cover a nontrivial optimum, no positives, an exact F1 tie between different thresholds, tied score blocks, all positives and singleton inputs. Seeded cases emphasize duplicates, permutations, extremes and maximum size. Three mutants cover row-wise tie handling, the wrong threshold tie-break and a precision-like denominator. Validation cases are deterministic and only validation-label threshold selection is discussed.",
+  "practice": {
+    "role": "ai_ml",
+    "level": "Full-time interview",
+    "focus": "applied"
+  },
+  "hints": {
+    "nudge": "Can a threshold separate examples that have exactly the same score?",
+    "approach": "Track confusion counts as a threshold moves across distinct score groups. Evaluate only realizable predictions and apply the specified tie rule; consider comparing metric ratios without rounding."
+  }
 }

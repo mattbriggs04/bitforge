@@ -1,20 +1,27 @@
 package model
 
-import "time"
+import (
+	"github.com/mattbriggs04/bitforge/backend/internal/curriculum"
+	"time"
+)
 
 type ProblemSummary struct {
-	ID               string   `json:"id"`
-	Slug             string   `json:"slug"`
-	Title            string   `json:"title"`
-	Difficulty       string   `json:"difficulty"`
-	Category         string   `json:"category"`
-	ProblemType      string   `json:"problemType"`
-	ShortDescription string   `json:"shortDescription"`
-	Tags             []string `json:"tags"`
-	Completed        bool     `json:"completed"`
+	Practice         curriculum.Profile `json:"practice"`
+	TargetMinutes    int                `json:"targetMinutes"`
+	Objectives       []string           `json:"objectives"`
+	ID               string             `json:"id"`
+	Slug             string             `json:"slug"`
+	Title            string             `json:"title"`
+	Difficulty       string             `json:"difficulty"`
+	Category         string             `json:"category"`
+	ProblemType      string             `json:"problemType"`
+	ShortDescription string             `json:"shortDescription"`
+	Tags             []string           `json:"tags"`
+	Completed        bool               `json:"completed"`
 }
 
 type ProblemDetail struct {
+	Hints curriculum.Hints `json:"hints"`
 	ProblemSummary
 	StatementMarkdown   string             `json:"statementMarkdown"`
 	ConstraintsMarkdown string             `json:"constraintsMarkdown"`
@@ -124,12 +131,13 @@ type JudgeResult struct {
 }
 
 type InterviewSummary struct {
-	Slug          string `json:"slug"`
-	Title         string `json:"title"`
-	Category      string `json:"category"`
-	Description   string `json:"description"`
-	QuestionCount int    `json:"questionCount"`
-	TargetMinutes int    `json:"targetMinutes"`
+	Contract      curriculum.Contract `json:"contract"`
+	Slug          string              `json:"slug"`
+	Title         string              `json:"title"`
+	Category      string              `json:"category"`
+	Description   string              `json:"description"`
+	QuestionCount int                 `json:"questionCount"`
+	TargetMinutes int                 `json:"targetMinutes"`
 }
 type InterviewDetail struct {
 	InterviewSummary

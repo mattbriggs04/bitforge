@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 25,
-    "focusAreas": ["debugging", "endianness", "memory-safety"],
-    "source": "seed"
+    "focusAreas": [
+      "debugging",
+      "endianness",
+      "memory-safety"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "reasoning"
+    },
+    "targetMinutes": 25,
+    "objectives": [
+      "Fix a C frame parser with endian and bounds-checking bugs"
+    ],
+    "hints": {
+      "nudge": "Which checks must happen before a byte can be read?",
+      "approach": "Trace the shortest valid frame and the first truncated frame. Reconstruct the declared length using the stated byte order, then compare it with the available payload without allowing arithmetic wraparound."
+    }
   },
   "tags": ["debugging", "endianness", "bounds", "protocols"],
   "templates": [

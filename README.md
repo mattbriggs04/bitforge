@@ -20,11 +20,15 @@ To run services separately, use `make api`, `make worker`, and `make frontend`. 
 
 ## Generate a new question with an agent
 
-1. Edit `generation/request.json`: choose category, format, language, difficulty, topic, level, and time budget. Use `random` for category/format/language/difficulty. Seed `0` selects a fresh seed on each invocation; a nonzero seed reproduces the selection. `avoid` supplies topics or questions to exclude.
+Open **Prompts** to choose a role and preset, adjust a custom mix, then build and copy an agent prompt. Save the resolved config to repeat it later. Give it to an agent working in this repository; `AGENTS.md` documents authoring and tutoring. The page compiles instructions; the agent creates, validates, and imports content.
+
+The command-line route uses the same compiler:
+
+1. Edit `generation/request.json`: choose category, format, language, difficulty, topic, level, and time budget. Use `random` for category/format/language/difficulty. Seed `0` selects a fresh seed on each invocation; a positive seed reproduces the selection. `avoid` supplies topics or questions to exclude.
 2. Run `make generation-prompt`. It writes the fully expanded request and instructions to `generation/next-question.txt`.
 3. Give that text to your coding agent working in this repository. The agent authors a draft JSON bundle, runs validation, repairs failures, and imports it only after validation succeeds. There is no dependency on a particular LLM provider and no paid API call hidden in this command.
 
-The agent contract is `backend/internal/authoring/bundle.go`. Complete examples live in `generation/examples/`. Each run requests exactly one question. The seed controls selection and generated inputs; it does not make LLM wording deterministic. Keep the actual bundle to reproduce the question.
+The agent contract is `backend/internal/authoring/bundle.go`. Complete examples live in `generation/examples/`. `kind: "question"` requests one question; `kind: "interview"` requests a collection. See `generation/interview-request.json` for a complete collection request. The seed controls selection and generated inputs; it does not make LLM wording deterministic. Keep the actual bundle to reproduce the question.
 
 Manual validation and publication:
 
@@ -88,7 +92,7 @@ An interview groups reusable questions into an ordered collection. Each member k
 
 Open **Interviews → Binary classifiers** for three AI/ML multiple-choice questions and one Python coding exercise (about 45 minutes). The source is `generation/interviews/binary-classifiers/interview.json`.
 
-An interview manifest uses `schemaVersion`, `slug`, `title`, `category`, `description`, and `questions`: an ordered array of relative question-bundle filenames. It accepts 1–20 questions, including different formats. Referenced files must remain inside the manifest directory. Each question follows the existing generated-bundle contract.
+A version 2 interview manifest uses `schemaVersion: 2`, `slug`, `title`, `category`, `description`, `contract`, and `questions`: an ordered array of relative question-bundle filenames. It accepts 1–20 questions, including different formats. Referenced files must remain inside the manifest directory. Each question follows the existing generated-bundle contract.
 
 ```bash
 cd backend
@@ -98,7 +102,37 @@ go run ./cmd/problems import-interview -bundle ../generation/interviews/binary-c
 
 Import validates every question first, then publishes all members and their order in one database transaction. A failed validation or import leaves the previous catalog and collection unchanged. Question slugs must be unique within a collection; a question may belong to multiple interviews. Unpublishing a member hides its interview rather than silently dropping or renumbering that question.
 
-For another mixed interview, ask the agent to author the requested question bundles plus a manifest, then run `import-interview`. `make generation-prompt` still expands a single-question request.
+Choose a role-specific preset in Prompts or compile a collection request:
+
+```bash
+cd backend
+go run ./cmd/problems prompt -config ../generation/interview-request.json -out ../generation/next-interview.txt
+```
+
+### Roles and practice contracts
+
+`backend/internal/curriculum/curriculum.go` owns the roles, presets, and defaults used by both interfaces. Format (code, single choice, multiple select, numerical) is separate from focus (fundamentals, applied, reasoning). An applied architecture question can be a numerical cache trace; an applied ML question normally involves Python. Defaults resolve into an explicit mix before the prompt is copied.
+
+| Preset | Default time | Coverage |
+| --- | --- | --- |
+| Daily | 25 min | One fundamentals check + one applied task |
+| Technical interview | 60 min | Fundamentals + applied task + reasoning follow-up |
+| Exam | 60 min | Two fundamentals checks + two numerical reasoning tasks + one applied task |
+| Custom | Editable | Any explicit mix of 1–20 questions |
+
+ML and vision default fundamentals checks to numerical questions; embedded/systems/architecture use single choice. Applied tasks default to coding except architecture, which uses numerical traces. These are editable starting points, not a universal question-count rule. Choose **Customize mix** to change formats, focuses, and counts. Time is always configurable.
+
+Every new question bundle uses schemaVersion 2 and includes `practice: {role, level, focus}`, `objectives`, `targetMinutes`, and `hints: {nudge, approach}`. An interview's `contract` contains `role`, `preset`, `level`, `targetMinutes`, and measurable `objectives`. Members must share its role and level; their times must sum exactly to its budget. Validation checks preset focus coverage. Custom removes the preset coverage constraint. Reasoning still uses supported objective grading; free-text proof grading is not implemented.
+
+Migration 006 enriches existing published questions and collections without changing grader payloads, frozen versions, submission history, or browser draft hashes. All 26 legacy sources and seven generated question sources have explicit profiles and topic-specific hints. Existing collections retain their composition as custom contracts. Older private validation reports remain historical records of the bundles they checked; edited version 2 bundles must pass validation again before reimporting. Version 1 draft authors should add the new fields and bump to version 2.
+
+### Hints and agent help
+
+Problem pages reveal a **Nudge**, then an optional **Approach**. These are public Markdown authored with the question; they should guide without giving away the answer. Scaffolding and full walkthroughs are on-demand agent tasks.
+
+Open **Ask an agent** beside your work, choose a help level, describe where you are stuck, and copy the prompt. It includes the public problem, current code/answer, and visible result details. You can preview it first. **Prompts → Get help** also lets you select a problem, paste work, or explicitly load that problem/language's local draft. It does not automatically read another device's browser state.
+
+Tutor prompts and `AGENTS.md` direct the agent to use public material, leave private references/hidden tests alone, give one step at a time, and provide a full walkthrough only when requested. They are instructions to the external agent, not an enforcement sandbox for its repository access. Copying is manual; there is no integrated chat or model API call. Hints do not change correctness scoring; separate assisted-attempt tracking is not implemented.
 
 ## Practice experience
 
@@ -163,6 +197,8 @@ The ordinary test suite covers comparison semantics, schema validation, oracle d
 
 See `.env.example`. Main options: `DATABASE_URL`, `HTTP_PORT`, `DEFAULT_USER_HANDLE`, `JUDGE_WORKERS`, `COMPILE_TIMEOUT`, `RUN_TIMEOUT`, `SANDBOX_IMAGE`, optional `SANDBOX_RUNTIME`, and `BACKEND_API_URL`. Compilers are fixed inside the sandbox image. `APP_ENV=production` disables development reset.
 
+- `GET /api/v1/prompts/catalog` (roles, presets, default mixes)
+- `POST /api/v1/prompts/compile` (request config → resolved config and agent prompt; no side effects)
 - `GET /api/v1/interviews`
 - `GET /api/v1/interviews/{slug}` (ordered questions with personal completion)
 - `GET /api/v1/problems` (`q`, `difficulty`, `category`, `tag`)

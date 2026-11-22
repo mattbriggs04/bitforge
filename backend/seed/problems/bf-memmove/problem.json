@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 20,
-    "focusAreas": ["pointers", "overlap-safety", "memory-layout"],
-    "source": "seed"
+    "focusAreas": [
+      "pointers",
+      "overlap-safety",
+      "memory-layout"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 20,
+    "objectives": [
+      "Implement overlap-safe memory copy semantics"
+    ],
+    "hints": {
+      "nudge": "Which copy direction preserves unread source bytes when the regions overlap?",
+      "approach": "Sketch source and destination intervals for overlap in both directions. Choose a traversal that never overwrites a source byte you still need, and handle zero length before accessing memory."
+    }
   },
   "tags": ["libc", "memory", "overlap", "pointers"],
   "templates": [

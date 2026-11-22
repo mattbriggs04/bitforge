@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 20,
-    "focusAreas": ["data-types", "integer-promotion", "bitwise"],
-    "source": "seed"
+    "focusAreas": [
+      "data-types",
+      "integer-promotion",
+      "bitwise"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "fundamentals"
+    },
+    "targetMinutes": 20,
+    "objectives": [
+      "Sign-extend packed ADC values and implement saturating 16-bit addition"
+    ],
+    "hints": {
+      "nudge": "The packed value\u2019s sign bit may not be the machine type\u2019s sign bit.",
+      "approach": "Treat reconstruction and arithmetic as separate steps. Use a wider intermediate for the sum, compare it against the destination limits, and only then narrow the result."
+    }
   },
   "tags": ["data-types", "signedness", "bitwise", "saturation"],
   "templates": [

@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 25,
-    "focusAreas": ["queues", "circular-indexing", "state-machines"],
-    "source": "seed"
+    "focusAreas": [
+      "queues",
+      "circular-indexing",
+      "state-machines"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 25,
+    "objectives": [
+      "Implement a fixed-capacity FIFO ring buffer used in firmware pipelines"
+    ],
+    "hints": {
+      "nudge": "When the indices coincide, what distinguishes an empty ring from a full one?",
+      "approach": "Choose consistent meanings for read index, write index, and count. Trace wraparound and rejected operations while checking that unsuccessful calls leave the ring state unchanged."
+    }
   },
   "tags": ["ring-buffer", "embedded", "fifo", "index-arithmetic"],
   "templates": [

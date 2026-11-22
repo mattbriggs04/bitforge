@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "category": "ai_ml",
   "difficulty": "medium",
   "format": "single_choice",
@@ -50,5 +50,14 @@
     "source": "import json\nfrom fractions import Fraction as F\nrows=[(F(8,10),1),(F(5,10),1),(F(5,10),0),(F(2,10),0)]\np=sum(y for _,y in rows);n=len(rows)-p\ntp=fp=0;area=F(0)\nfor threshold in sorted({s for s,_ in rows},reverse=True):\n    old_tpr,old_fpr=F(tp,p),F(fp,n)\n    block=[y for s,y in rows if s==threshold]\n    tp+=sum(block);fp+=len(block)-sum(block)\n    area+=(F(fp,n)-old_fpr)*(F(tp,p)+old_tpr)/2\noptions={'A':F(3,4),'B':F(1),'C':F(7,8),'D':F(1,2)}\nmatches=[k for k,v in options.items() if v==area]\nassert len(matches)==1\nprint(json.dumps(matches[0]))\n"
   },
   "explanation": "There are four positive-negative pairs. $P_1$ beats $N_1$ and $N_2$. $P_2$ ties $N_1$ and beats $N_2$. Awarding half credit to the tie gives\n\n$$\n\\mathrm{AUC}=\\frac{1+1+\\frac{1}{2}+1}{4}=0.875.\n$$\n\nTied scores must move through the ROC curve together.",
-  "reviewNotes": "The explanatory derivation enumerates positive-negative pairs. The executable verifier independently constructs the threshold-block ROC path and integrates trapezoids using exact fractions, including the initial (0,0) and final (1,1) points."
+  "reviewNotes": "The explanatory derivation enumerates positive-negative pairs. The executable verifier independently constructs the threshold-block ROC path and integrates trapezoids using exact fractions, including the initial (0,0) and final (1,1) points.",
+  "practice": {
+    "role": "ai_ml",
+    "level": "Full-time interview",
+    "focus": "reasoning"
+  },
+  "hints": {
+    "nudge": "What does a positive-negative pair contribute when their scores are tied?",
+    "approach": "Compare the ranking of each positive-negative pair using the tie convention in the statement. Normalize by the number of such pairs rather than by the number of observations."
+  }
 }

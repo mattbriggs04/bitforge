@@ -1,4 +1,4 @@
-import { ProblemDetail, ProblemSummary, InterviewSummary, InterviewDetail } from "@/lib/types";
+import { ProblemDetail, ProblemSummary, InterviewSummary, InterviewDetail, PromptCatalog } from "@/lib/types";
 
 const BACKEND_API_URL =
   process.env.BACKEND_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
@@ -86,3 +86,5 @@ export async function getInterviewServer(slug: string): Promise<InterviewDetail 
   if (!response.ok) throw new Error(`Could not load interview (${response.status})`);
   return response.json() as Promise<InterviewDetail>;
 }
+
+export async function getPromptCatalogServer(): Promise<PromptCatalog> { return backendFetch<PromptCatalog>("/api/v1/prompts/catalog"); }

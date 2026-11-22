@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mattbriggs04/bitforge/backend/internal/curriculum"
 	"github.com/mattbriggs04/bitforge/backend/internal/model"
 )
 
@@ -41,7 +42,7 @@ func (r *ProblemsRepository) ListPublished(ctx context.Context, filter model.Pro
 	}
 
 	query := `
-		SELECT id, slug, title, difficulty, category, problem_type, short_description
+		SELECT id, slug, title, difficulty, category, problem_type, short_description, metadata
 		FROM problems
 		WHERE ` + strings.Join(where, " AND ") + `
 		ORDER BY
@@ -59,6 +60,7 @@ func (r *ProblemsRepository) ListPublished(ctx context.Context, filter model.Pro
 	problemIDs := make([]string, 0)
 	for rows.Next() {
 		var item model.ProblemSummary
+		var publicMetadata []byte
 		if err := rows.Scan(
 			&item.ID,
 			&item.Slug,
@@ -67,8 +69,12 @@ func (r *ProblemsRepository) ListPublished(ctx context.Context, filter model.Pro
 			&item.Category,
 			&item.ProblemType,
 			&item.ShortDescription,
+			&publicMetadata,
 		); err != nil {
 			return nil, fmt.Errorf("scan problem summary: %w", err)
+		}
+		if err := hydratePractice(&item, publicMetadata); err != nil {
+			return nil, err
 		}
 		items = append(items, item)
 		problemIDs = append(problemIDs, item.ID)
@@ -134,6 +140,14 @@ func (r *ProblemsRepository) GetPublishedBySlug(ctx context.Context, slug string
 		return nil, err
 	}
 	detail.Samples = samples
+	if err := hydratePractice(&detail.ProblemSummary, metadataRaw); err != nil {
+		return nil, err
+	}
+	if raw, err := json.Marshal(detail.Metadata["hints"]); err == nil {
+		if err = json.Unmarshal(raw, &detail.Hints); err != nil {
+			return nil, err
+		}
+	}
 
 	templates, err := r.getTemplates(ctx, detail.ID)
 	if err != nil {
@@ -156,11 +170,12 @@ func (r *ProblemsRepository) GetPublishedBySlug(ctx context.Context, slug string
 
 func (r *ProblemsRepository) GetBySlug(ctx context.Context, slug string) (*model.ProblemSummary, error) {
 	const query = `
-		SELECT id, slug, title, difficulty, category, problem_type, short_description
+		SELECT id, slug, title, difficulty, category, problem_type, short_description, metadata
 		FROM problems
 		WHERE slug = $1
 	`
 	var item model.ProblemSummary
+	var publicMetadata []byte
 	if err := r.db.QueryRowContext(ctx, query, slug).Scan(
 		&item.ID,
 		&item.Slug,
@@ -169,6 +184,7 @@ func (r *ProblemsRepository) GetBySlug(ctx context.Context, slug string) (*model
 		&item.Category,
 		&item.ProblemType,
 		&item.ShortDescription,
+		&publicMetadata,
 	); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -180,6 +196,9 @@ func (r *ProblemsRepository) GetBySlug(ctx context.Context, slug string) (*model
 		return nil, err
 	}
 	item.Tags = tagsByProblem[item.ID]
+	if err := hydratePractice(&item, publicMetadata); err != nil {
+		return nil, err
+	}
 	return &item, nil
 }
 
@@ -396,4 +415,21 @@ func (r *ProblemsRepository) getTagsForProblems(ctx context.Context, problemIDs 
 	}
 
 	return result, nil
+}
+
+func hydratePractice(item *model.ProblemSummary, raw []byte) error {
+	var data struct {
+		Practice      curriculum.Profile `json:"practice"`
+		TargetMinutes int                `json:"targetMinutes"`
+		Objectives    []string           `json:"objectives"`
+	}
+	if len(raw) > 0 {
+		if err := json.Unmarshal(raw, &data); err != nil {
+			return fmt.Errorf("decode practice metadata: %w", err)
+		}
+	}
+	item.Practice = data.Practice
+	item.TargetMinutes = data.TargetMinutes
+	item.Objectives = data.Objectives
+	return nil
 }

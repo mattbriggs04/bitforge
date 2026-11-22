@@ -10,8 +10,25 @@
   "solutionFile": "solution.md",
   "metadata": {
     "estimatedMinutes": 15,
-    "focusAreas": ["pointers", "memory-layout", "byte-operations"],
-    "source": "seed"
+    "focusAreas": [
+      "pointers",
+      "memory-layout",
+      "byte-operations"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "fundamentals"
+    },
+    "targetMinutes": 15,
+    "objectives": [
+      "Implement a byte-for-byte non-overlapping memory copy routine"
+    ],
+    "hints": {
+      "nudge": "What does copying a byte mean regardless of the pointed-to data type?",
+      "approach": "Reason about source and destination as byte sequences of exactly the requested length. Preserve the original destination return value and check the zero-length contract."
+    }
   },
   "tags": ["libc", "memory", "byte-copy", "pointers"],
   "templates": [

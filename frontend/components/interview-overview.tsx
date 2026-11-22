@@ -30,12 +30,13 @@ export function InterviewOverview({ initial }: { initial: InterviewDetail }) {
         <div><span className="tag tag-category">{problemLabel(interview.category)}</span><span>{interview.questionCount} questions</span><span>~{interview.targetMinutes} min</span>{progressAvailable ? <span>{completed}/{interview.questionCount} solved</span> : null}</div>
         {next ? <Link className="btn btn-primary" href={questionURL(next.slug)}>{completed === interview.questionCount ? "Review" : completed ? "Continue" : "Start interview"}<span aria-hidden>↗</span></Link> : null}
       </div>
+      {interview.contract?.role ? <details className="interview-contract"><summary>{problemLabel(interview.contract.role)} · {interview.contract.level} · {interview.contract.preset === "custom" ? "Custom mix" : problemLabel(interview.contract.preset)}</summary><ul>{interview.contract.objectives.map((objective) => <li key={objective}>{objective}</li>)}</ul></details> : null}
       <ol className="interview-questions">
         {interview.problems.map((problem, index) => (
           <li key={problem.id}>
             <Link className="interview-question" href={questionURL(problem.slug)}>
               <span className="problem-index">{progressAvailable && problem.completed ? "✓" : String(index + 1).padStart(2, "0")}</span>
-              <div><h2>{problem.title}</h2><p>{problem.shortDescription}</p></div>
+              <div><h2>{problem.title}</h2><p>{problem.shortDescription}</p><span className="question-focus">{problemLabel(problem.practice?.focus ?? "applied")} · {problem.targetMinutes} min</span></div>
               <div className="interview-question-tags"><span className="tag tag-format">{problemLabel(problem.problemType)}</span><span className={`tag tag-difficulty tag-${problem.difficulty}`}>{problem.difficulty}</span></div>
               <span className="row-arrow" aria-hidden>↗</span>
             </Link>

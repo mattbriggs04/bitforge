@@ -2,12 +2,10 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
-	"math/big"
 	"os"
 	"os/exec"
 	"strings"
@@ -44,13 +42,6 @@ func run() error {
 		var c authoring.Config
 		if err = authoring.Decode(data, &c); err != nil {
 			return err
-		}
-		if c.Seed == 0 {
-			n, err := rand.Int(rand.Reader, big.NewInt(1<<62))
-			if err != nil {
-				return err
-			}
-			c.Seed = n.Int64() + 1
 		}
 		prompt, err := authoring.Prompt(c)
 		if err != nil {

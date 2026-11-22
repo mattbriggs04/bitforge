@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 40,
-    "focusAreas": ["communication-protocols", "state-machines", "uart"],
-    "source": "seed"
+    "focusAreas": [
+      "communication-protocols",
+      "state-machines",
+      "uart"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "applied"
+    },
+    "targetMinutes": 40,
+    "objectives": [
+      "Parse a byte stream into UART frames with sync, length, and checksum"
+    ],
+    "hints": {
+      "nudge": "A stream can stop partway through a frame or contain noise before synchronization.",
+      "approach": "List the parser states and the byte expected in each state. Define recovery after invalid length or checksum, and check which bytes belong in the checksum."
+    }
   },
   "tags": ["uart", "protocols", "state-machine", "checksum"],
   "templates": [

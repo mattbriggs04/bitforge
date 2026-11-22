@@ -9,8 +9,25 @@
   "constraintsFile": "constraints.md",
   "metadata": {
     "estimatedMinutes": 15,
-    "focusAreas": ["debugging", "data-types", "integer-underflow"],
-    "source": "seed"
+    "focusAreas": [
+      "debugging",
+      "data-types",
+      "integer-underflow"
+    ],
+    "source": "seed",
+    "practice": {
+      "role": "embedded",
+      "level": "Full-time interview",
+      "focus": "reasoning"
+    },
+    "targetMinutes": 15,
+    "objectives": [
+      "Fix off-by-one and underflow bugs in an 8-bit counter API"
+    ],
+    "hints": {
+      "nudge": "What should happen at each end of the representable range?",
+      "approach": "Trace increment and decrement at zero, one below the maximum, and the maximum. Decide whether to update before performing arithmetic that could wrap."
+    }
   },
   "tags": ["debugging", "data-types", "underflow", "state"],
   "templates": [
